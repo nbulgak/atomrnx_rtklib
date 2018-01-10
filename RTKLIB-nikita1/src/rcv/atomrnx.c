@@ -495,7 +495,14 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
     {
     int n,prn,s;
 
-	raw->time = gpst2time(0, primary_time_tag);
+	if(time_tag_extension_type == 0)
+	{
+	    raw->time = gpst2time(0, day*86400 + hour*3600 + primary_time_tag);
+	}
+	else
+	{
+        raw->time = gpst2time(0, primary_time_tag);
+	}
 
     for (i=n=0;i< sat_cnt&& n<MAXOBS;i++) {
 		unsigned int si = sat[i];

@@ -205,7 +205,7 @@ start:
      cumulative_session_transmitting_time_indicator = getbitu(Raw, k, 7); k+=7;
     printf("Cumulative session transmitting time indicator=%d\n", cumulative_session_transmitting_time_indicator);
 
-    /*Observable mask*/
+    /*Observables mask*/
 	if(k + 16 > mes_len*8)
 	{
 		printf("Invalid message: Len_Observable mask\n");
@@ -323,7 +323,7 @@ start:
 		unsigned int mask_len = Signal_mask_len;
 		for( j = i = 0; i < mask_len; ++i )
 		{
-			if( mask & (1<<( mask_len-i-1 )) )
+			if( mask & (1<<( mask_len - i - 1 )) )
 			{
 				printf( "sig[%d]=%d\n", j, i );
 				sig[ j++] = i;
@@ -410,7 +410,7 @@ start:
 		goto start;
 	}
 
-	for(i = 0; i < sat_cnt; i++)
+	for(i = 0; i < sat_cnt; i++) /*PseudoRange */
 	{
 		int s = sat[ i];
 		int sat_sig = sat_sig_cnt[ s];
@@ -430,12 +430,12 @@ start:
 		{
 			int ss = sig_type[ s][ j];
 			int len = ( Resolution == 0 ? 4 : 10);
-			CycSlipCounter[ s][ ss] = getbitu(Raw, k, len); k+=len;;
+			CycSlipCounter[ s][ ss] = getbitu(Raw, k, len); k+=len;
 			IntCycPhase[ s][ ss] = getbitu(Raw, k, 12); k+=12;
 		}
 	}
 
-	for(i = 0; i < sat_cnt; i++)
+	for(i = 0; i < sat_cnt; i++) /*Phase */
 	{
 		int s = sat[ i];
 		int sat_sig = sat_sig_cnt[ s];
@@ -492,19 +492,19 @@ start:
 
 printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 
-    {
+    {/* to rtklib*/
     int n,prn,s;
 
 	if(time_tag_extension_type == 0)
 	{
-	    raw->time = gpst2time(0, day*86400 + hour*3600 + primary_time_tag);
+	    raw->time = gpst2time(0, (day*86400.) + (hour*3600.) + primary_time_tag);
 	}
 	else
 	{
         raw->time = gpst2time(0, primary_time_tag);
 	}
 
-    for (i=n=0;i< sat_cnt&& n<MAXOBS;i++) {
+    for (i=n=0;i< sat_cnt && n < MAXOBS;i++) {
 		unsigned int si = sat[i];
 
         prn=si+1;
@@ -516,14 +516,17 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
         raw->obs.data[n].sat=s;
 
 		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ );
-        for (j=0;j< sat_sig_cnt[ si] && j<NFREQ;j++) {
+        for (j = 0;j< sat_sig_cnt[ si] && j < NFREQ;j++) {
 			int ss = sig_type[ si ][ j];
-			raw->obs.data[n].LLI[j] = CycSlipCounter[ si][ ss];
-			raw->obs.data[n].L[j] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-			raw->obs.data[n].P[j]= FinePseudoRange[ si][ ss]*0.02;
-            raw->obs.data[n].D[j]=0.0;
-            raw->obs.data[n].SNR[j] = SNR[ si][ ss]/0.25;
-            raw->obs.data[n].code[j]=CODE_NONE+ss;
+			/*for(i = 0; i < si; i++)*/
+			{
+				raw->obs.data[n].LLI[j] = CycSlipCounter[ si][ ss];
+				raw->obs.data[n].L[j] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
+				raw->obs.data[n].P[j]= FinePseudoRange[ si][ ss]*0.02;
+				raw->obs.data[n].D[j] = 0.0;
+				raw->obs.data[n].SNR[j] = SNR[ si][ ss]/0.25;
+				raw->obs.data[n].code[j] = CODE_NONE+ss;
+			}
         }
 
 		printf( "sat %d added\n", si );

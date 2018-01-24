@@ -541,7 +541,6 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				raw->obs.data[n].LLI[j] = CycSlipCounter[ si][ ss];
 				raw->obs.data[n].L[j] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
 				raw->obs.data[n].P[j]= FinePseudoRange[ si][ ss]*0.02;
-				raw->obs.data[n].P[j]= FinePseudoRange[ si][ ss]*(CLIGHT*0.001)*0.0009765625*0.02 ;
 				raw->obs.data[n].D[j] = 0.0;
 				raw->obs.data[n].SNR[j] = SNR[ si][ ss]/0.25;
 				/*raw->obs.data[n].code[j] = CODE_NONE + ss;*/

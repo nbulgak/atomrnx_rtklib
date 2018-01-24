@@ -50,6 +50,7 @@ static int get_active_bits( unsigned int mask, int len )
 
 int input_atomrnxf(raw_t *raw, FILE *f)
 {
+	/*extern const char *msm_sig_gps[32];*/
 	unsigned char Raw[ 2048 ];
     int i, j, k, l;
 	unsigned int mes_len, mes_num , GNSSmask;
@@ -309,9 +310,9 @@ start:
 		unsigned int mask_len = Satellite_mask_len[l];
 		for( i = 0; i < mask_len; ++i )
 		{
-			if( mask & (1<<( mask_len-i-1 )) )
+			if( mask & (1<<( mask_len - i - 1 )) )
 			{
-				printf( "sat[%d]=%d\n", j, i+offs );
+				printf( "sat[%d]=%d\n", j, i + offs );
 				sat[ j++] = i + offs;
 			}
 		}
@@ -339,10 +340,11 @@ start:
 
 		for( j = 0; j < sig_cnt ; ++j )
 		{
-			if( mask & (1<<( sig_cnt-j-1 )))
+			if( mask & (1<<( sig_cnt - j - 1 )))
 			{
 				printf( "sat=%d sig[%d]=%d\n", sat[ i], sat_sig_cnt[ sat[ i]], sig[ j] );
-				sig_type[ sat[ i]][ sat_sig_cnt[ sat[ i]]++ ] = sig[ j]; 
+				sig_type[ sat[ i]][ sat_sig_cnt[ sat[ i]] ] = sig[ j]; 
+				sat_sig_cnt[ sat[ i]]++;
 			}
 		}
 
@@ -492,7 +494,7 @@ start:
 
 printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 
-    {/* to rtklib*/
+    /* rtklib_time */
     int n,prn,s;
 
 	if(time_tag_extension_type == 0)
@@ -503,38 +505,67 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 	{
         raw->time = gpst2time(0, primary_time_tag);
 	}
-
-    for (i=n=0;i< sat_cnt && n < MAXOBS;i++) {
+    /* RTKlib fields filling*/
+    for (i=n=0; i< sat_cnt && n < MAXOBS;i++) 
+	{
 		unsigned int si = sat[i];
 
-        prn=si+1;
+        prn=si+1; /* sdvigaem schetchik na 1 */
+		
         if (!(s=satno(SYS_GPS,prn))) {
             continue;
         }
-
+		
         raw->obs.data[n].time=raw->time;
         raw->obs.data[n].sat=s;
+		printf("s=%d\n", s);
+		
 
-		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ );
-        for (j = 0;j< sat_sig_cnt[ si] && j < NFREQ;j++) {
+		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ+NEXOBS );
+        for (j = 0; j < sat_sig_cnt[ si] && j < NFREQ+NEXOBS; j++) 
+		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
+		{
 			int ss = sig_type[ si ][ j];
-			/*for(i = 0; i < si; i++)*/
+            /*	if(ss == 1)
+					ss = CODE_L1C;
+				if(ss == 3)
+					ss = CODE_L1W;
+				if(ss == 9)
+					ss = CODE_L2W;
+				if(ss == 15)
+					ss = CODE_L2L;
+				if(ss == 22)
+					ss = CODE_L5Q;
+			for(i = 0; i < si; i++)*/
 			{
 				raw->obs.data[n].LLI[j] = CycSlipCounter[ si][ ss];
 				raw->obs.data[n].L[j] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
 				raw->obs.data[n].P[j]= FinePseudoRange[ si][ ss]*0.02;
+				/*raw->obs.data[n].P[j]= FinePseudoRange[ si][ ss]*(CLIGHT*0.001)*0.0009765625*0.02 ;*/
 				raw->obs.data[n].D[j] = 0.0;
 				raw->obs.data[n].SNR[j] = SNR[ si][ ss]/0.25;
-				raw->obs.data[n].code[j] = CODE_NONE+ss;
+				/*raw->obs.data[n].code[j] = CODE_NONE + ss;*/
+				
+				if(ss == 1)
+					raw->obs.data[n].code[j] = CODE_L1C;
+				if(ss == 3)
+					raw->obs.data[n].code[j] = CODE_L1W;
+				if(ss == 9)
+					raw->obs.data[n].code[j] = CODE_L2W;
+				if(ss == 15)
+					raw->obs.data[n].code[j] = CODE_L2L;
+				if(ss == 22)
+					raw->obs.data[n].code[j] = CODE_L5Q;
+				printf("raw->obs.data[n].code[j]=%d\n", raw->obs.data[n].code[j]);
 			}
         }
 
-		printf( "sat %d added\n", si );
+		printf( "sat %d added\n", s );
+		
         n++;
     }
-    raw->obs.n=n;
 
-    }
+    raw->obs.n = n; /* number of observations */
 
 	return 1;
 }

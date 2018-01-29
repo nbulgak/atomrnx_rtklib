@@ -1590,6 +1590,7 @@ static void save_msm_obs(rtcm_t *rtcm, int sys, msm_h_t *h, const double *r,
             default: sig[i]=""; break;
         }
         /* signal to rinex obs type */
+		printf("freq=%x\n", freq);
         code[i]=obs2code(sig[i],freq+i);
         
         /* freqency index for beidou */

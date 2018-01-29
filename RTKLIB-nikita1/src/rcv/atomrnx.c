@@ -2,6 +2,44 @@
 #include <stdarg.h>
 #include "rtklib.h"
 
+static void sigindex(int sys, const unsigned char *code, const int *freq, int n,
+                     const char *opt, int *ind)
+{
+    int i,nex,pri,pri_h[8]={0},index[8]={0},ex[32]={0};
+    
+    /* test code priority */
+    for (i=0;i<n;i++) {
+        if (!code[i]) continue;
+        
+        if (freq[i]>NFREQ) { /* save as extended signal if freq > NFREQ */
+            ex[i]=1;
+            continue;
+        }
+        /* code priority */
+        pri=getcodepri(sys,code[i],opt);
+        
+        /* select highest priority signal */
+        if (pri>pri_h[freq[i]-1]) {
+            if (index[freq[i]-1]) ex[index[freq[i]-1]-1]=1;
+            pri_h[freq[i]-1]=pri;
+            index[freq[i]-1]=i+1;
+        }
+        else ex[i]=1;
+    }
+    /* signal index in obs data */
+    for (i=nex=0;i<n;i++) {
+        if (ex[i]==0) ind[i]=freq[i]-1;
+        else if (nex<NEXOBS) ind[i]=NFREQ+nex++;
+        else { /* no space in obs data */
+            trace(2,"rtcm msm: no space in obs data sys=%d code=%d\n",sys,code[i]);
+            ind[i]=-1;
+        }
+#if 0
+        trace(2,"sig pos: sys=%d code=%d ex=%d ind=%d\n",sys,code[i],ex[i],ind[i]);
+#endif
+    }
+}
+
 #if 1
 static FILE *nik_log;
 
@@ -50,9 +88,9 @@ static int get_active_bits( unsigned int mask, int len )
 
 int input_atomrnxf(raw_t *raw, FILE *f)
 {
-	/*extern const char *msm_sig_gps[32];*/
+	extern const char *msm_sig_gps[32];
 	unsigned char Raw[ 2048 ];
-    int i, j, k, l;
+    int i, j, k, l, m;
 	unsigned int mes_len, mes_num , GNSSmask;
 	unsigned int mes_sub_num;
 	unsigned int version ;
@@ -495,7 +533,9 @@ start:
 printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 
     /* rtklib_time */
-    int n,prn,s;
+    int n,prn,s,freq[32],ind[32];
+	unsigned char code[32];
+
 
 	if(time_tag_extension_type == 0)
 	{
@@ -509,6 +549,14 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
     for (i=n=0; i< sat_cnt && n < MAXOBS;i++) 
 	{
 		unsigned int si = sat[i];
+		const char* sig_obs[32];
+		for(m=0; m < sig_cnt; m++)
+		{
+			sig_obs[m] = msm_sig_gps[sig[m]];
+			printf("sig_obs[%d] = %s\n", m, sig_obs[m]);
+			code[m]=obs2code(sig_obs[m],freq+m);
+		}
+		sigindex(SYS_GPS,code,freq,sig_cnt,0,ind);
 
         prn=si+1; /* sdvigaem schetchik na 1 */
 		
@@ -526,26 +574,16 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
 		{
 			int ss = sig_type[ si ][ j];
-            /*	if(ss == 1)
-					ss = CODE_L1C;
-				if(ss == 3)
-					ss = CODE_L1W;
-				if(ss == 9)
-					ss = CODE_L2W;
-				if(ss == 15)
-					ss = CODE_L2L;
-				if(ss == 22)
-					ss = CODE_L5Q;
-			for(i = 0; i < si; i++)*/
+			for(m = 0; m < si; m++)
 			{
-				raw->obs.data[n].LLI[j] = CycSlipCounter[ si][ ss];
-				raw->obs.data[n].L[j] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-				raw->obs.data[n].P[j]= FinePseudoRange[ si][ ss]*0.02;
-				raw->obs.data[n].D[j] = 0.0;
-				raw->obs.data[n].SNR[j] = SNR[ si][ ss]/0.25;
-				/*raw->obs.data[n].code[j] = CODE_NONE + ss;*/
+				raw->obs.data[n].LLI[ind[m]] = CycSlipCounter[ si][ ss];
+				raw->obs.data[n].L[ind[m]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
+				raw->obs.data[n].P[ind[m]]= FinePseudoRange[ si][ ss]*0.02;
+				raw->obs.data[n].D[ind[m]] = 0.0;
+				raw->obs.data[n].SNR[ind[m]] = SNR[ si][ ss]/0.25;
+				raw->obs.data[n].code[ind[m]] = code[m];
 				
-				if(ss == 1)
+				/*if(ss == 1)
 					raw->obs.data[n].code[j] = CODE_L1C;
 				if(ss == 3)
 					raw->obs.data[n].code[j] = CODE_L1W;
@@ -554,8 +592,9 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				if(ss == 15)
 					raw->obs.data[n].code[j] = CODE_L2L;
 				if(ss == 22)
-					raw->obs.data[n].code[j] = CODE_L5Q;
-				printf("raw->obs.data[n].code[j]=%d\n", raw->obs.data[n].code[j]);
+					raw->obs.data[n].code[j] = CODE_L5Q;*/
+                /*raw->obs.data[n].code[j] = obs2code(sig_obs[j], j);*/
+				printf("raw->obs.data[n].code[j]=%d\n", raw->obs.data[n].code[ind[m]]);
 			}
         }
 

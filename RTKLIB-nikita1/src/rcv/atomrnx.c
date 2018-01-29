@@ -555,8 +555,15 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 			sig_obs[m] = msm_sig_gps[sig[m]];
 			printf("sig_obs[%d] = %s\n", m, sig_obs[m]);
 			code[m]=obs2code(sig_obs[m],freq+m);
+			printf("code[%d] = %d\n", m, code[m]);
+			printf("freq[%d] = %d\n", m, freq[m]);
 		}
 		sigindex(SYS_GPS,code,freq,sig_cnt,0,ind);
+
+		for(m=0; m < sig_cnt; m++)
+		printf("ind[%d] = %d\n", m, ind[m]);
+
+		printf("NFREQ=%d, NEXOBS=%d\n", NFREQ,NEXOBS);
 
         prn=si+1; /* sdvigaem schetchik na 1 */
 		
@@ -574,14 +581,14 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
 		{
 			int ss = sig_type[ si ][ j];
-			for(m = 0; m < si; m++)
+			/*for(m = 0; m < si; m++)*/
 			{
-				raw->obs.data[n].LLI[ind[m]] = CycSlipCounter[ si][ ss];
-				raw->obs.data[n].L[ind[m]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-				raw->obs.data[n].P[ind[m]]= FinePseudoRange[ si][ ss]*0.02;
-				raw->obs.data[n].D[ind[m]] = 0.0;
-				raw->obs.data[n].SNR[ind[m]] = SNR[ si][ ss]/0.25;
-				raw->obs.data[n].code[ind[m]] = code[m];
+				raw->obs.data[n].LLI[ind[j]] = CycSlipCounter[ si][ ss];
+				raw->obs.data[n].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
+				raw->obs.data[n].P[ind[j]]= FinePseudoRange[ si][ ss]*0.02;
+				raw->obs.data[n].D[ind[j]] = 0.0;
+				raw->obs.data[n].SNR[ind[j]] = SNR[ si][ ss]/0.25;
+				raw->obs.data[n].code[ind[j]] = code[j];
 				
 				/*if(ss == 1)
 					raw->obs.data[n].code[j] = CODE_L1C;
@@ -594,7 +601,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				if(ss == 22)
 					raw->obs.data[n].code[j] = CODE_L5Q;*/
                 /*raw->obs.data[n].code[j] = obs2code(sig_obs[j], j);*/
-				printf("raw->obs.data[n].code[j]=%d\n", raw->obs.data[n].code[ind[m]]);
+				printf("raw->obs.data[n].code[%d]=%d\n", ind[j], raw->obs.data[n].code[ind[j]]);
 			}
         }
 

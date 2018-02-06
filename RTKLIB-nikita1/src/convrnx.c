@@ -388,7 +388,9 @@ static void setopt_obstype(const unsigned char *codes,
                 }
             }
             else if (opt->nobs[sys]<MAXOBSTYPE) { /* ver.3 */
+				printf("\n nobs_setopt_obstype[%d]=%d, i=%d, j=%d\n", sys, opt->nobs[sys], i, j);
                 strcpy(opt->tobs[sys][opt->nobs[sys]++],type);
+				printf("nobs_setopt_obstype[%d]=%d, i=%d, j=%d\n", sys, opt->nobs[sys], i, j);
             }
         }
     }
@@ -540,6 +542,10 @@ static void set_obstype(int format, rnxopt_t *opt)
     const unsigned char codes_rt17[6][8]={
         {CODE_L1C,CODE_L2W}
     };
+    /* supported codes by atomrnx */
+    const unsigned char codes_atomrnx[6][8]={
+        {CODE_L1C,CODE_L1W,CODE_L2W,CODE_L2L,CODE_L5Q}
+    };
     /* supported codes by others */
     const unsigned char codes_other[6][8]={
         {CODE_L1C},{CODE_L1C},{CODE_L1C},{CODE_L1C},{CODE_L1C},{CODE_L1I}
@@ -560,6 +566,7 @@ static void set_obstype(int format, rnxopt_t *opt)
             case STRFMT_BINEX: codes=codes_rinex[i]; break;
             case STRFMT_RT17 : codes=codes_rt17 [i]; break;
             case STRFMT_RINEX: codes=codes_rinex[i]; break;
+			case STRFMT_ATOMRNX: codes=codes_atomrnx[i]; break;
             default:           codes=codes_other[i]; break;
         }
         /* set observation types in rinex option */
@@ -652,6 +659,7 @@ static void convobs(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n,
                     unsigned char slips[][NFREQ+NEXOBS])
 {
     gtime_t time;
+		printf("nobs_convobs=%d\n", opt->nobs[0]);
     
     trace(3,"convobs :\n");
     
@@ -672,6 +680,7 @@ static void convobs(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n,
     
     if (opt->tstart.time==0) opt->tstart=time;
     opt->tend=time;
+	printf("nobs_convobs2=%d\n", opt->nobs[0]);
     
     n[0]++;
 }
@@ -909,6 +918,7 @@ static int convrnx_s(int sess, int format, rnxopt_t *opt, const char *file,
         }
     }
     nf=expath(path,epath,MAXEXFILE);
+	printf("nobs_convenx_s1=%d\n", opt->nobs[0]);
     
     if (format==STRFMT_RTCM2||format==STRFMT_RTCM3||format==STRFMT_RT17) {
         time=opt->trtcm;
@@ -944,7 +954,7 @@ static int convrnx_s(int sess, int format, rnxopt_t *opt, const char *file,
         free_strfile(str);
         return 0;
     }
-	
+	printf("nobs_convenx_s2=%d\n", opt->nobs[0]);
     for (i=0;i<nf&&!abort;i++) {
         
         /* open stream file */
@@ -1001,6 +1011,8 @@ static int convrnx_s(int sess, int format, rnxopt_t *opt, const char *file,
     
     if (opt->tstart.time==0) opt->tstart=opt->ts;
     if (opt->tend  .time==0) opt->tend  =opt->te;
+
+	printf("nobs_convenx_s3=%d\n", opt->nobs[0]);
     
     return abort?-1:1;
 }
@@ -1059,6 +1071,7 @@ extern int convrnx(int format, rnxopt_t *opt, const char *file, char **ofile)
             if (timediff(opt_.ts,opt->ts)<0.0) opt_.ts=opt->ts;
             if (timediff(opt_.te,opt->te)>0.0) opt_.te=opt->te;
             opt_.tstart=opt_.tend=t0;
+			printf("nobs_convrnx=%d\n", opt->nobs[0]);
             if ((stat=convrnx_s(i+1,format,&opt_,file,ofile))<0) break;
         }
     }

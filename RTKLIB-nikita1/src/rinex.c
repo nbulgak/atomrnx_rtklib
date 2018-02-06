@@ -1938,6 +1938,7 @@ static int obsindex(double ver, int sys, const unsigned char *code,
         if (mask[code[i]-1]=='0') continue;
         
         if (ver<=2.99) { /* ver.2 */
+			printf("ver 2\n");
             if (!strcmp(tobs,"C1")&&(sys==SYS_GPS||sys==SYS_GLO||sys==SYS_QZS||
                 sys==SYS_SBS||sys==SYS_CMP)) {
                 if (code[i]==CODE_L1C) return i;
@@ -1981,6 +1982,7 @@ static int obsindex(double ver, int sys, const unsigned char *code,
             }
         }
         else { /* ver.3 */
+			printf("ver 3\n");
             id=code2obs(code[i],NULL);
             if (!strcmp(id,tobs+1)) return i;
         }
@@ -2010,6 +2012,7 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
     
     for (i=ns=0;i<n&&ns<MAXOBS;i++) {
         sys=satsys(obs[i].sat,NULL);
+
         if (!(sys&opt->navsys)||opt->exsats[obs[i].sat-1]) continue;
         if (!sat2code(obs[i].sat,sats[ns])) continue;
         switch (sys) {
@@ -2035,6 +2038,8 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
         fprintf(fp,"> %04.0f %2.0f %2.0f %2.0f %2.0f%11.7f  %d%3d%21s\n",
                 ep[0],ep[1],ep[2],ep[3],ep[4],ep[5],flag,ns,"");
     }
+	printf("ya doshel v cikl\n");
+	printf("ns=%d\n", ns);
     for (i=0;i<ns;i++) {
         sys=satsys(obs[ind[i]].sat,NULL);
         
@@ -2046,7 +2051,10 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
             fprintf(fp,"%-3s",sats[i]);
             m=s[i];
             mask=opt->mask[s[i]];
+			printf("m=%d\n", m);
         }
+		printf("nobs_pered_ciklom=%d\n", opt->nobs[0]);
+printf("opt->nobs[%d]=%d\n", m, opt->nobs[m]);
         for (j=0;j<opt->nobs[m];j++) {
             
             if (opt->rnxver<=2.99) { /* ver.2 */
@@ -2059,12 +2067,13 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
                 continue;
             }
             /* output field */
+			printf("ya doshel do pechati signala\n");
             switch (opt->tobs[m][j][0]) {
                 case 'C':
-                case 'P': outrnxobsf(fp,obs[ind[i]].P[k],-1); break;
-                case 'L': outrnxobsf(fp,obs[ind[i]].L[k],obs[ind[i]].LLI[k]); break;
-                case 'D': outrnxobsf(fp,obs[ind[i]].D[k],-1); break;
-                case 'S': outrnxobsf(fp,obs[ind[i]].SNR[k]*0.25,-1); break;
+                case 'P': printf("i=%d, j=%d, P\n", i, j); outrnxobsf(fp,obs[ind[i]].P[k],-1); break;
+                case 'L': printf("i=%d, j=%d, L\n", i, j); outrnxobsf(fp,obs[ind[i]].L[k],obs[ind[i]].LLI[k]); break;
+                case 'D': printf("i=%d, j=%d, D\n", i, j); outrnxobsf(fp,obs[ind[i]].D[k],-1); break;
+                case 'S': printf("i=%d, j=%d, S\n", i, j); outrnxobsf(fp,obs[ind[i]].SNR[k]*0.25,-1); break;
             }
         }
         if (opt->rnxver>2.99&&fprintf(fp,"\n")==EOF) return 0;

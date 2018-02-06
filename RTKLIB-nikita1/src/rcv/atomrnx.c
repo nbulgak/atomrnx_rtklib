@@ -2,12 +2,34 @@
 #include <stdarg.h>
 #include "rtklib.h"
 
+static int obsindex(obs_t *obs, gtime_t time, int sat)
+{
+    int i,j;
+    
+    for (i=0;i<obs->n;i++) {
+        if (obs->data[i].sat==sat) return i; /* field already exists */
+    }
+    if (i>=MAXOBS) return -1; /* overflow */
+    
+    /* add new field */
+    obs->data[i].time=time;
+    obs->data[i].sat=sat;
+    for (j=0;j<NFREQ+NEXOBS;j++) {
+        obs->data[i].L[j]=obs->data[i].P[j]=0.0;
+        obs->data[i].D[j]=0.0;
+        obs->data[i].SNR[j]=obs->data[i].LLI[j]=obs->data[i].code[j]=0;
+    }
+    obs->n++;
+    return i;
+}
+
 static void sigindex(int sys, const unsigned char *code, const int *freq, int n,
                      const char *opt, int *ind)
 {
-    int i,nex,pri,pri_h[8]={0},index[8]={0},ex[32]={0};
+    int i,nex,pri,pri_h[8]={0},index[8]={0},ex[32]={0},j;
     
     /* test code priority */
+	
     for (i=0;i<n;i++) {
         if (!code[i]) continue;
         
@@ -26,6 +48,7 @@ static void sigindex(int sys, const unsigned char *code, const int *freq, int n,
         }
         else ex[i]=1;
     }
+	
     /* signal index in obs data */
     for (i=nex=0;i<n;i++) {
         if (ex[i]==0) ind[i]=freq[i]-1;
@@ -546,10 +569,12 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
         raw->time = gpst2time(0, primary_time_tag);
 	}
     /* RTKlib fields filling*/
-    for (i=n=0; i< sat_cnt && n < MAXOBS;i++) 
+    for (i=n=0; i< sat_cnt ;i++) 
 	{
 		unsigned int si = sat[i];
 		const char* sig_obs[32];
+		int index;
+		double tt;
 		for(m=0; m < sig_cnt; m++)
 		{
 			sig_obs[m] = msm_sig_gps[sig[m]];
@@ -563,17 +588,28 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		for(m=0; m < sig_cnt; m++)
 		printf("ind[%d] = %d\n", m, ind[m]);
 
-		printf("NFREQ=%d, NEXOBS=%d\n", NFREQ,NEXOBS);
+		/*printf("NFREQ=%d, NEXOBS=%d\n", NFREQ,NEXOBS);*/
 
         prn=si+1; /* sdvigaem schetchik na 1 */
-		
+/*		
         if (!(s=satno(SYS_GPS,prn))) {
             continue;
         }
-		
-        raw->obs.data[n].time=raw->time;
-        raw->obs.data[n].sat=s;
-		printf("s=%d\n", s);
+*/		
+        /*raw->obs.data[index].time=raw->time;
+        raw->obs.data[index].sat=s;*/
+		/*printf("s=%d\n", s);*/
+
+        if ((s=satno(SYS_GPS,prn))) {
+            tt=timediff(raw->obs.data[0].time,raw->time);
+            if (fabs(tt)>1E-9) {
+                raw->obs.n=0;
+            }
+            index=obsindex(&raw->obs,raw->time,s);
+        }
+
+		/*int index=obsindex(&raw->obs,raw->time,s);*/
+		printf("index=%d\n", index);
 		
 
 		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ+NEXOBS );
@@ -581,36 +617,27 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
 		{
 			int ss = sig_type[ si ][ j];
-			/*for(m = 0; m < si; m++)*/
+			if (s&&index>=0&&ind[j]>=0)
 			{
-				raw->obs.data[n].LLI[ind[j]] = CycSlipCounter[ si][ ss];
-				raw->obs.data[n].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-				raw->obs.data[n].P[ind[j]]= FinePseudoRange[ si][ ss]*0.02;
-				raw->obs.data[n].D[ind[j]] = 0.0;
-				raw->obs.data[n].SNR[ind[j]] = SNR[ si][ ss]/0.25;
-				raw->obs.data[n].code[ind[j]] = code[j];
+				raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[ si][ ss];
+				raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
+				raw->obs.data[index].P[ind[j]]= FinePseudoRange[ si][ ss]*0.02;
+				raw->obs.data[index].D[ind[j]] = 1.0;
+				raw->obs.data[index].SNR[ind[j]] = SNR[ si][ ss]/0.25;
+				raw->obs.data[index].code[ind[j]] = code[j];
 				
-				/*if(ss == 1)
-					raw->obs.data[n].code[j] = CODE_L1C;
-				if(ss == 3)
-					raw->obs.data[n].code[j] = CODE_L1W;
-				if(ss == 9)
-					raw->obs.data[n].code[j] = CODE_L2W;
-				if(ss == 15)
-					raw->obs.data[n].code[j] = CODE_L2L;
-				if(ss == 22)
-					raw->obs.data[n].code[j] = CODE_L5Q;*/
-                /*raw->obs.data[n].code[j] = obs2code(sig_obs[j], j);*/
-				printf("raw->obs.data[n].code[%d]=%d\n", ind[j], raw->obs.data[n].code[ind[j]]);
+				printf("raw->obs.data[%d].code[%d]=%d\n", index, ind[j], raw->obs.data[index].code[ind[j]]);
 			}
         }
 
+		n++;
+        
 		printf( "sat %d added\n", s );
-		
-        n++;
+		/*
+        raw->obs.n = n; 
+        n++;*/
     }
 
-    raw->obs.n = n; /* number of observations */
 
 	return 1;
 }

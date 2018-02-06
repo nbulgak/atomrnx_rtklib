@@ -251,6 +251,8 @@ static int convbin(int format, rnxopt_t *opt, const char *ifile, char **file,
     if (*ofile[4]) fprintf(stderr,"->rinex qnav: %s\n",ofile[4]);
     if (*ofile[5]) fprintf(stderr,"->rinex lnav: %s\n",ofile[5]);
     if (*ofile[6]) fprintf(stderr,"->sbas log  : %s\n",ofile[6]);
+
+	printf("nobs_convbin=%d\n", opt->nobs[0]);
     
     if (!convrnx(format,opt,ifile,ofile)) {
         fprintf(stderr,"\n");
@@ -467,7 +469,7 @@ int main(int argc, char **argv)
     
     /* parse command line options */
     format=cmdopts(argc,argv,&opt,&ifile,ofile,&dir,&trace);
-    
+	
     if (!*ifile) {
         fprintf(stderr,"no input file\n");
         return -1;

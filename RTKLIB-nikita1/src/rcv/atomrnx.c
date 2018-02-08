@@ -156,7 +156,12 @@ int input_atomrnxf(raw_t *raw, FILE *f)
 	unsigned int need_bits;
 	unsigned int Int_num_sat_ranges[MAX_SATS];
 	unsigned int Sat_rough_range[MAX_SATS];
-	unsigned int Extended_sat_data[MAX_SATS];
+	unsigned int Azimuth[MAX_SATS];
+	unsigned int Elevation[MAX_SATS];
+	int Doppler[MAX_SATS];
+	unsigned int Full_Range_Available[MAX_SATS];
+	unsigned int Satellite_Usage_Status[MAX_SATS];
+/*	unsigned int Extended_sat_data[MAX_SATS];*/
 	unsigned int FinePseudoRange[MAX_SATS][MAX_SIGS];
 	unsigned int CycSlipCounter[MAX_SATS][MAX_SIGS];
 	unsigned int IntCycPhase[MAX_SATS][MAX_SIGS];
@@ -461,9 +466,14 @@ start:
 	{
 		for(i = 0; i < sat_cnt; i++)
 		{
-			Extended_sat_data[sat[i]] = getbitu(Raw, k, 32); k+=32;
+		    Azimuth[sat[i]] = getbitu(Raw, k, 8); k+=8;
+		    Elevation[sat[i]] = getbitu(Raw, k, 7); k+=7; 
+	  	    Doppler[sat[i]] = getbits(Raw, k, 14); k+=14;
+	        Full_Range_Available[sat[i]] = getbitu(Raw, k, 1); k+=1;
+		    Satellite_Usage_Status[sat[i]] = getbitu(Raw, k, 2); k+=2;
 		}
 	}
+
 
 	/* Signal data*/
 	need_bits = 0;
@@ -618,7 +628,16 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
             index=obsindex(&raw->obs,raw->time,s);
         }
 
-		printf("ref=%lf\n", ((double)Reference_P[si])*RANGE_MS);
+		/*printf("ref=%lf\n", ((double)Reference_P[si])*RANGE_MS);*/
+		/*printf("N=%d\n", Int_num_sat_ranges[si]);
+		printf("N*1024=%d\n", (Int_num_sat_ranges[si]*1024) );
+		printf("Sat_rough_range[%d]=%d\n", si, Sat_rough_range[si] );
+		printf("ref[%d]=%lf\n", si, (double)Reference_P[si] );*/
+		printf("D=%d\n", Doppler[si]);
+
+
+
+
 
 		/*int index=obsindex(&raw->obs,raw->time,s);*/
 		/*printf("index=%d\n", index);
@@ -632,8 +651,8 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[ si][ ss];
 				raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
 				raw->obs.data[index].P[ind[j]]= ((double)Reference_P[si])*RANGE_MS/1024. + FinePseudoRange[ si][ ss]*0.02;
-				printf("P[%d][%d]=%lf\n", index, j, raw->obs.data[index].P[ind[j]]);
-				raw->obs.data[index].D[ind[j]] = 1.0;
+				/*printf("P[%d][%d]=%lf\n", index, j, raw->obs.data[index].P[ind[j]]);*/
+				raw->obs.data[index].D[ind[j]] = Doppler[si];
 				raw->obs.data[index].SNR[ind[j]] = SNR[ si][ ss]/0.25;
 				raw->obs.data[index].code[ind[j]] = code[j];
 				

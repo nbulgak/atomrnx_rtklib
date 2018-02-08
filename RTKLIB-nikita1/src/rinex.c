@@ -1981,7 +1981,6 @@ static int obsindex(double ver, int sys, const unsigned char *code,
             }
         }
         else { /* ver.3 */
-			printf("ver 3\n");
             id=code2obs(code[i],NULL);
             if (!strcmp(id,tobs+1)) return i;
         }
@@ -2037,8 +2036,7 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
         fprintf(fp,"> %04.0f %2.0f %2.0f %2.0f %2.0f%11.7f  %d%3d%21s\n",
                 ep[0],ep[1],ep[2],ep[3],ep[4],ep[5],flag,ns,"");
     }
-	printf("ya doshel v cikl\n");
-	printf("ns=%d\n", ns);
+
     for (i=0;i<ns;i++) {
         sys=satsys(obs[ind[i]].sat,NULL);
         
@@ -2051,9 +2049,7 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
             m=s[i];
             mask=opt->mask[s[i]];
 			printf("m=%d\n", m);
-        }
-		printf("nobs_pered_ciklom=%d\n", opt->nobs[0]);
-printf("opt->nobs[%d]=%d\n", m, opt->nobs[m]);
+		}
         for (j=0;j<opt->nobs[m];j++) {
             
             if (opt->rnxver<=2.99) { /* ver.2 */
@@ -2066,7 +2062,6 @@ printf("opt->nobs[%d]=%d\n", m, opt->nobs[m]);
                 continue;
             }
             /* output field */
-			printf("ya doshel do pechati signala\n");
             switch (opt->tobs[m][j][0]) {
                 case 'C':
                 case 'P': printf("i=%d, j=%d, P\n", i, j); outrnxobsf(fp,obs[ind[i]].P[k],-1); break;

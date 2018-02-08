@@ -1938,7 +1938,6 @@ static int obsindex(double ver, int sys, const unsigned char *code,
         if (mask[code[i]-1]=='0') continue;
         
         if (ver<=2.99) { /* ver.2 */
-			printf("ver 2\n");
             if (!strcmp(tobs,"C1")&&(sys==SYS_GPS||sys==SYS_GLO||sys==SYS_QZS||
                 sys==SYS_SBS||sys==SYS_CMP)) {
                 if (code[i]==CODE_L1C) return i;

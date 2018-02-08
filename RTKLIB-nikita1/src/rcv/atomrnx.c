@@ -108,6 +108,9 @@ static int get_active_bits( unsigned int mask, int len )
 
 #define MAX_SATS 64
 #define MAX_SIGS 64
+#define CLIGHT      299792458.0         /* speed of light (m/s) */
+#define RANGE_MS    (CLIGHT*0.001)      /* range in 1 ms */
+
 
 int input_atomrnxf(raw_t *raw, FILE *f)
 {
@@ -160,6 +163,8 @@ int input_atomrnxf(raw_t *raw, FILE *f)
 	unsigned int FracCycPhase[MAX_SATS][MAX_SIGS];
 	unsigned int SNR[MAX_SATS][MAX_SIGS];
 	unsigned int ExtSuppData[MAX_SATS][MAX_SIGS][2];
+
+	unsigned int Reference_P[MAX_SATS];
 
 start:
 	i=0;k=0;
@@ -447,6 +452,11 @@ start:
 		}
 	}
 
+	for(i = 0; i < sat_cnt; i++)  /* Reference PseudoRange */
+	{
+		Reference_P[sat[i]] = Int_num_sat_ranges[sat[i]]*1024 + Sat_rough_range[sat[i]];
+	}
+
 	if(Supplementary_follow == 2)
 	{
 		for(i = 0; i < sat_cnt; i++)
@@ -578,15 +588,15 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		for(m=0; m < sig_cnt; m++)
 		{
 			sig_obs[m] = msm_sig_gps[sig[m]];
-			printf("sig_obs[%d] = %s\n", m, sig_obs[m]);
+			/*printf("sig_obs[%d] = %s\n", m, sig_obs[m]);*/
 			code[m]=obs2code(sig_obs[m],freq+m);
-			printf("code[%d] = %d\n", m, code[m]);
-			printf("freq[%d] = %d\n", m, freq[m]);
+			/*printf("code[%d] = %d\n", m, code[m]);
+			printf("freq[%d] = %d\n", m, freq[m]);*/
 		}
 		sigindex(SYS_GPS,code,freq,sig_cnt,0,ind);
 
 		for(m=0; m < sig_cnt; m++)
-		printf("ind[%d] = %d\n", m, ind[m]);
+		/*printf("ind[%d] = %d\n", m, ind[m]);*/
 
 		/*printf("NFREQ=%d, NEXOBS=%d\n", NFREQ,NEXOBS);*/
 
@@ -608,11 +618,11 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
             index=obsindex(&raw->obs,raw->time,s);
         }
 
-		/*int index=obsindex(&raw->obs,raw->time,s);*/
-		printf("index=%d\n", index);
-		
+		printf("ref=%lf\n", ((double)Reference_P[si])*RANGE_MS);
 
-		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ+NEXOBS );
+		/*int index=obsindex(&raw->obs,raw->time,s);*/
+		/*printf("index=%d\n", index);
+		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ+NEXOBS );*/
         for (j = 0; j < sat_sig_cnt[ si] && j < NFREQ+NEXOBS; j++) 
 		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
 		{
@@ -621,17 +631,17 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 			{
 				raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[ si][ ss];
 				raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-				raw->obs.data[index].P[ind[j]]= FinePseudoRange[ si][ ss]*0.02;
+				raw->obs.data[index].P[ind[j]]= ((double)Reference_P[si])*RANGE_MS/1024. + FinePseudoRange[ si][ ss]*0.02;
+				printf("P[%d][%d]=%lf\n", index, j, raw->obs.data[index].P[ind[j]]);
 				raw->obs.data[index].D[ind[j]] = 1.0;
 				raw->obs.data[index].SNR[ind[j]] = SNR[ si][ ss]/0.25;
 				raw->obs.data[index].code[ind[j]] = code[j];
 				
-				printf("raw->obs.data[%d].code[%d]=%d\n", index, ind[j], raw->obs.data[index].code[ind[j]]);
+				/*printf("raw->obs.data[%d].code[%d]=%d\n", index, ind[j], raw->obs.data[index].code[ind[j]]);*/
 			}
+			n++;
         }
 
-		n++;
-        
 		printf( "sat %d added\n", s );
 		/*
         raw->obs.n = n; 

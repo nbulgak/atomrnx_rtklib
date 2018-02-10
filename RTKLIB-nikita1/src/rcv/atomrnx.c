@@ -2,6 +2,18 @@
 #include <stdarg.h>
 #include "rtklib.h"
 
+double RestorePValue(double Reference, double Ambiguity, double Modulo)
+{
+
+  Modulo = Modulo - (int)(Modulo / Ambiguity)*Ambiguity; 
+  double Closest = (int)(Reference / Ambiguity)*Ambiguity; /*find nearest on ambiguity scale*/
+  double Full = Closest + Modulo; /*full value which can have error +-fAmbiguity*/
+  double Delta = (Full - Reference); /*Find how far restored value from reference*/
+  if (Delta > Ambiguity / 2) Full -= Ambiguity; /*make minus correction*/
+  else if (Delta < -Ambiguity / 2) Full += Ambiguity; /*make plus correction*/
+  return Full;
+}
+
 static int obsindex(obs_t *obs, gtime_t time, int sat)
 {
     int i,j;
@@ -639,6 +651,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 
 
 
+
 		/*int index=obsindex(&raw->obs,raw->time,s);*/
 		/*printf("index=%d\n", index);
 		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ+NEXOBS );*/
@@ -650,7 +663,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 			{
 				raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[ si][ ss];
 				raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-				raw->obs.data[index].P[ind[j]]= ((double)Reference_P[si])*RANGE_MS/1024. + FinePseudoRange[ si][ ss]*0.02;
+				raw->obs.data[index].P[ind[j]]= RestorePValue(((double)Reference_P[si])*RANGE_MS/1024., 655.34,  FinePseudoRange[ si][ ss]*0.02);
 				/*printf("P[%d][%d]=%lf\n", index, j, raw->obs.data[index].P[ind[j]]);*/
 				raw->obs.data[index].D[ind[j]] = Doppler[si];
 				raw->obs.data[index].SNR[ind[j]] = SNR[ si][ ss]/0.25;

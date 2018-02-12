@@ -175,7 +175,7 @@ int input_atomrnxf(raw_t *raw, FILE *f)
 	unsigned int Satellite_Usage_Status[MAX_SATS];
 /*	unsigned int Extended_sat_data[MAX_SATS];*/
 	unsigned int ChannelNumber[MAX_SATS][MAX_SIGS];
-	int FineDoppler[MAX_SATS][MAX_SIGS];
+	double FineDoppler[MAX_SATS][MAX_SIGS];
 	unsigned int FinePseudoRange[MAX_SATS][MAX_SIGS];
 	unsigned int CycSlipCounter[MAX_SATS][MAX_SIGS];
 	unsigned int IntCycPhase[MAX_SATS][MAX_SIGS];
@@ -660,7 +660,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		{
 			int ss = sig_type[ si ][ j];
 			double wl=satwavelen(sat,freq[j]-1,NULL);
-			printf("Doppler=%d, FineDoppler=%d\n", Doppler[si] , FineDoppler[si][ss]);
+			printf("Doppler=%d, FineDoppler=%lf\n", Doppler[si] , FineDoppler[si][ss]*0.0001);
 
 			if (s&&index>=0&&ind[j]>=0)
 			{
@@ -668,7 +668,8 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
 				raw->obs.data[index].P[ind[j]]= RestorePValue(((double)Reference_P[si])*RANGE_MS/1024., 655.36,  FinePseudoRange[ si][ ss]*0.02);
 				/*printf("P[%d][%d]=%lf\n", index, j, raw->obs.data[index].P[ind[j]]);*/
-				raw->obs.data[index].D[ind[j]] = Doppler[si] + FineDoppler[si][ss]*0.0001;
+				raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss]*0.0001)/wl;
+				/*raw->obs.data[index].D[ind[j]] = RestorePValue(Doppler[si],  + FineDoppler[si][ss]*0.0001;*/
 				raw->obs.data[index].SNR[ind[j]] = SNR[ si][ ss]/0.25;
 				raw->obs.data[index].code[ind[j]] = code[j];
 				

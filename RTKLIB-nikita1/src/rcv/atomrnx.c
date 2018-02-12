@@ -660,20 +660,21 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		{
 			int ss = sig_type[ si ][ j];
 			double wl=satwavelen(sat,freq[j]-1,NULL);
-			printf("Doppler=%d, FineDoppler=%lf\n", Doppler[si] , FineDoppler[si][ss]*0.0001);
-
 			if (s&&index>=0&&ind[j]>=0)
 			{
 				raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[ si][ ss];
-				raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-				raw->obs.data[index].P[ind[j]]= RestorePValue(((double)Reference_P[si])*RANGE_MS/1024., 655.36,  FinePseudoRange[ si][ ss]*0.02);
-				/*printf("P[%d][%d]=%lf\n", index, j, raw->obs.data[index].P[ind[j]]);*/
-				raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss]*0.0001)/wl;
-				/*raw->obs.data[index].D[ind[j]] = RestorePValue(Doppler[si],  + FineDoppler[si][ss]*0.0001;*/
+				raw->obs.data[index].P[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/1024., 655.36,  FinePseudoRange[ si][ ss]*0.02);
+				if(wl > 0.0)
+				{
+				    raw->obs.data[index].L[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/(wl*1024.), wl, FracCycPhase[ si][ ss]*wl/(256.));
+					printf("FracCycPhase[ si][ ss]=%lf\n", FracCycPhase[ si][ ss]*wl/(256.));
+				}
+				if(wl > 0.0)
+				{
+				    raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss]*0.0001)/wl;
+				}
 				raw->obs.data[index].SNR[ind[j]] = SNR[ si][ ss]/0.25;
 				raw->obs.data[index].code[ind[j]] = code[j];
-				
-				/*printf("raw->obs.data[%d].code[%d]=%d\n", index, ind[j], raw->obs.data[index].code[ind[j]]);*/
 			}
 			n++;
         }

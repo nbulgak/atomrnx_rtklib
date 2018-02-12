@@ -174,6 +174,8 @@ int input_atomrnxf(raw_t *raw, FILE *f)
 	unsigned int Full_Range_Available[MAX_SATS];
 	unsigned int Satellite_Usage_Status[MAX_SATS];
 /*	unsigned int Extended_sat_data[MAX_SATS];*/
+	unsigned int ChannelNumber[MAX_SATS][MAX_SIGS];
+	int FineDoppler[MAX_SATS][MAX_SIGS];
 	unsigned int FinePseudoRange[MAX_SATS][MAX_SIGS];
 	unsigned int CycSlipCounter[MAX_SATS][MAX_SIGS];
 	unsigned int IntCycPhase[MAX_SATS][MAX_SIGS];
@@ -554,7 +556,7 @@ start:
 		}
 	}
 
-	for(i = 0; i < sat_cnt; i++)
+	for(i = 0; i < sat_cnt; i++)/* Utochnenii doppler tut */
 	{
 		int s = sat[ i];
 		int sat_sig = sat_sig_cnt[ s];
@@ -562,7 +564,9 @@ start:
 		{
 			int ss = sig_type[ s][ j];
 			int len = ( Resolution == 0 ? 56 : 64);
-			ExtSuppData[ s][ ss][0] = getbitu(Raw, k, 32); k+=32;
+			ChannelNumber[s][ss] = getbitu(Raw, k, 8); k+=8;
+			FineDoppler[s][ss] = getbits(Raw, k, 15); k+=15;
+			ExtSuppData[ s][ ss][0] = getbitu(Raw, k, 9); k+=9;
 			ExtSuppData[ s][ ss][1] = getbitu(Raw, k, (len-32)); k+=(len-32);
 		}
 	}
@@ -607,6 +611,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		const char* sig_obs[32];
 		int index;
 		double tt;
+		
 		for(m=0; m < sig_cnt; m++)
 		{
 			sig_obs[m] = msm_sig_gps[sig[m]];
@@ -617,7 +622,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		}
 		sigindex(SYS_GPS,code,freq,sig_cnt,0,ind);
 
-		for(m=0; m < sig_cnt; m++)
+		/*for(m=0; m < sig_cnt; m++)*/
 		/*printf("ind[%d] = %d\n", m, ind[m]);*/
 
 		/*printf("NFREQ=%d, NEXOBS=%d\n", NFREQ,NEXOBS);*/
@@ -645,12 +650,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		printf("N*1024=%d\n", (Int_num_sat_ranges[si]*1024) );
 		printf("Sat_rough_range[%d]=%d\n", si, Sat_rough_range[si] );
 		printf("ref[%d]=%lf\n", si, (double)Reference_P[si] );*/
-		printf("D=%d\n", Doppler[si]);
-
-
-
-
-
+		/*printf("D=%d\n", Doppler[si]);*/
 
 		/*int index=obsindex(&raw->obs,raw->time,s);*/
 		/*printf("index=%d\n", index);
@@ -659,13 +659,16 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
 		{
 			int ss = sig_type[ si ][ j];
+			double wl=satwavelen(sat,freq[j]-1,NULL);
+			printf("Doppler=%d, FineDoppler=%d\n", Doppler[si] , FineDoppler[si][ss]);
+
 			if (s&&index>=0&&ind[j]>=0)
 			{
 				raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[ si][ ss];
 				raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss] + FracCycPhase[ si][ ss]/256.;
-				raw->obs.data[index].P[ind[j]]= RestorePValue(((double)Reference_P[si])*RANGE_MS/1024., 655.34,  FinePseudoRange[ si][ ss]*0.02);
+				raw->obs.data[index].P[ind[j]]= RestorePValue(((double)Reference_P[si])*RANGE_MS/1024., 655.36,  FinePseudoRange[ si][ ss]*0.02);
 				/*printf("P[%d][%d]=%lf\n", index, j, raw->obs.data[index].P[ind[j]]);*/
-				raw->obs.data[index].D[ind[j]] = Doppler[si];
+				raw->obs.data[index].D[ind[j]] = Doppler[si] + FineDoppler[si][ss]*0.0001;
 				raw->obs.data[index].SNR[ind[j]] = SNR[ si][ ss]/0.25;
 				raw->obs.data[index].code[ind[j]] = code[j];
 				

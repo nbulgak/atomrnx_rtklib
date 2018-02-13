@@ -124,7 +124,7 @@ static int get_active_bits( unsigned int mask, int len )
 #define RANGE_MS    (CLIGHT*0.001)      /* range in 1 ms */
 
 
-int input_atomrnxf(raw_t *raw, FILE *f)
+int input_atomf(raw_t *raw, FILE *f)
 {
 	extern const char *msm_sig_gps[32];
 	unsigned char Raw[ 2048 ];
@@ -667,6 +667,7 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				if(wl > 0.0)
 				{
 				    raw->obs.data[index].L[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/(wl*1024.), wl, FracCycPhase[ si][ ss]*wl/(256.));
+                    /*raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss]*RANGE_MS/wl + FracCycPhase[ si][ ss]*wl/(256.);*/
 					printf("FracCycPhase[ si][ ss]=%lf\n", FracCycPhase[ si][ ss]*wl/(256.));
 				}
 				if(wl > 0.0)

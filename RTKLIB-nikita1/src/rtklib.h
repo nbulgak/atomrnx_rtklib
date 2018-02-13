@@ -390,7 +390,7 @@ extern "C" {
 #define STRFMT_NVS   10                 /* stream format: NVS NVC08C */
 #define STRFMT_BINEX 11                 /* stream format: BINEX */
 #define STRFMT_RT17  12                 /* stream format: Trimble RT17 */
-#define STRFMT_ATOMRNX 13               /* stream format: Ashtech ATOM RNX */
+#define STRFMT_ATOM  13                  /* stream format: Ashtech ATOM */
 #define STRFMT_LEXR  14                 /* stream format: Furuno LPY-10000 */
 #define STRFMT_SEPT  15                 /* stream format: Septentrio */
 #define STRFMT_RINEX 16                 /* stream format: RINEX */
@@ -1531,7 +1531,7 @@ extern int input_nvsf  (raw_t *raw, FILE *fp);
 extern int input_bnxf  (raw_t *raw, FILE *fp);
 extern int input_rt17f (raw_t *raw, FILE *fp);
 extern int input_lexrf (raw_t *raw, FILE *fp);
-extern int input_atomrnxf (raw_t *raw, FILE *fp);
+extern int input_atomf (raw_t *raw, FILE *fp);
 
 extern int gen_ubx (const char *msg, unsigned char *buff);
 extern int gen_stq (const char *msg, unsigned char *buff);

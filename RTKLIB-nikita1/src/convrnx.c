@@ -542,10 +542,22 @@ static void set_obstype(int format, rnxopt_t *opt)
     const unsigned char codes_rt17[6][8]={
         {CODE_L1C,CODE_L2W}
     };
-    /* supported codes by atomrnx */
-    const unsigned char codes_atomrnx[6][8]={
-        {CODE_L1C,CODE_L1W,CODE_L2W,CODE_L2L,CODE_L5Q,CODE_L1L}
+
+    /* supported codes by atom */
+    const unsigned char codes_atom[6][32]={
+        {CODE_L1C,CODE_L1P,CODE_L1W,CODE_L2C,CODE_L2P,CODE_L2W,CODE_L2S,CODE_L2L,
+		 CODE_L2X,CODE_L5I,CODE_L5Q,CODE_L5X,CODE_L1S,CODE_L1L,CODE_L1X},/*GPS*/
+		{CODE_L1C,CODE_L5I,CODE_L5Q,CODE_L5X},/*SBS*/
+		{CODE_L1C,CODE_L1P,CODE_L2C,CODE_L2P,CODE_L3I,CODE_L3Q,CODE_L3X},/*GLO*/
+		{CODE_L1C,CODE_L1A,CODE_L1B,CODE_L1X,CODE_L1Z,CODE_L6C,CODE_L6A,CODE_L6B,
+		 CODE_L6X,CODE_L6Z,CODE_L7I,CODE_L7Q,CODE_L7X,CODE_L8I,CODE_L8Q,CODE_L8X,
+		 CODE_L5I,CODE_L5Q,CODE_L5X},/*GAL*/
+        {CODE_L1C,CODE_L1Z,CODE_L6S,CODE_L6L,CODE_L6X,CODE_L2S,CODE_L2L,CODE_L2X,
+		 CODE_L5I,CODE_L5Q,CODE_L5X,CODE_L1S,CODE_L1L,CODE_L1X},/*QZSS*/
+	    {CODE_L1I,CODE_L1Q,CODE_L1X,CODE_L6I,CODE_L6Q,CODE_L6X,CODE_L7I,CODE_L7Q,
+		 CODE_L7X}/*BeiDou*/
     };
+
     /* supported codes by others */
     const unsigned char codes_other[6][8]={
         {CODE_L1C},{CODE_L1C},{CODE_L1C},{CODE_L1C},{CODE_L1C},{CODE_L1I}
@@ -566,7 +578,7 @@ static void set_obstype(int format, rnxopt_t *opt)
             case STRFMT_BINEX: codes=codes_rinex[i]; break;
             case STRFMT_RT17 : codes=codes_rt17 [i]; break;
             case STRFMT_RINEX: codes=codes_rinex[i]; break;
-			case STRFMT_ATOMRNX: codes=codes_atomrnx[i]; break;
+			case STRFMT_ATOM: codes=codes_atom[i]; break;
             default:           codes=codes_other[i]; break;
         }
         /* set observation types in rinex option */

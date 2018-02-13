@@ -91,7 +91,7 @@ static const char *help[]={
 "                  binex= BINEX",
 "                  rt17 = Trimble RT17",
 "                  rinex= RINEX",
-"                  atomrnx= Ashtech ATOM RNX",
+"                  atom = Ashtech ATOM",
 "     -ro opt      receiver options",
 "     -f freq      number of frequencies [2]",
 "     -hc comment  rinex header: comment line",
@@ -438,7 +438,7 @@ static int cmdopts(int argc, char **argv, rnxopt_t *opt, char **ifile,
         else if (!strcmp(fmt,"binex")) format=STRFMT_BINEX;
         else if (!strcmp(fmt,"rt17" )) format=STRFMT_RT17;
         else if (!strcmp(fmt,"rinex")) format=STRFMT_RINEX;
-        else if (!strcmp(fmt,"atomrnx")) format=STRFMT_ATOMRNX;
+        else if (!strcmp(fmt,"atom"))  format=STRFMT_ATOM;
     }
     else {
         paths[0]=path;

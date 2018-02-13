@@ -883,7 +883,7 @@ extern int input_rawf(raw_t *raw, int format, FILE *fp)
         case STRFMT_BINEX: return input_bnxf  (raw,fp);
         case STRFMT_RT17 : return input_rt17f (raw,fp);
         case STRFMT_LEXR : return input_lexrf (raw,fp);
-        case STRFMT_ATOMRNX : return input_atomrnxf (raw,fp);
+        case STRFMT_ATOM : return input_atomf (raw,fp);
     }
     return -2;
 }

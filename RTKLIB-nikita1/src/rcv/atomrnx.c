@@ -127,60 +127,15 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	extern const char *msm_sig_gps[32];
     int i, j, l, m;
-	unsigned int GNSSmask;
-	unsigned int version ;
-	unsigned int ref_st_ID ;
-	unsigned int multiple ;
-	unsigned int IODS ;
-	unsigned int smoothing ;
-    unsigned int position_presentation ;
-	unsigned int primary_GNSS_system;
-	unsigned int primary_time_tag ;
-    unsigned int time_tag_extension_type;
-    unsigned int fractional_second ;
-	unsigned int hour ;
-	unsigned int day ;
-    unsigned int divergence_free_smoothing_indicator;
-    unsigned int cumulative_session_transmitting_time_indicator ;
-	unsigned int Data_ID_change_counter;
-    unsigned int Data_ID_follow;
-    unsigned int Nms_follow;
-    unsigned int Supplementary_follow;
-    unsigned int Pseudo_range_follow;
-    unsigned int Carrier_phase_follow;
-    unsigned int Resolution ;
-    unsigned int Reserved1;
-    unsigned int Reserved2;
-	unsigned int Satellite_mask[MAX_SATS/32];
-    unsigned int Signal_mask;
-	unsigned int Satellite_mask_len[MAX_SATS/32];
-	unsigned int Signal_mask_len;
-	unsigned int sat_cnt, sig_cnt;
-	unsigned int sat[MAX_SATS];
-	unsigned int sat_sig_cnt[MAX_SATS];
-	unsigned int sig[MAX_SIGS];
-	unsigned int sig_type[MAX_SATS][MAX_SIGS];
-	unsigned int offs;
-	unsigned int ncell;
-	unsigned int need_bits;
-	unsigned int Int_num_sat_ranges[MAX_SATS];
-	unsigned int Sat_rough_range[MAX_SATS];
-	unsigned int Azimuth[MAX_SATS];
-	unsigned int Elevation[MAX_SATS];
-	int Doppler[MAX_SATS];
-	unsigned int Full_Range_Available[MAX_SATS];
-	unsigned int Satellite_Usage_Status[MAX_SATS];
-/*	unsigned int Extended_sat_data[MAX_SATS];*/
-	unsigned int ChannelNumber[MAX_SATS][MAX_SIGS];
-	double FineDoppler[MAX_SATS][MAX_SIGS];
-	unsigned int FinePseudoRange[MAX_SATS][MAX_SIGS];
-	unsigned int CycSlipCounter[MAX_SATS][MAX_SIGS];
-	unsigned int IntCycPhase[MAX_SATS][MAX_SIGS];
-	unsigned int FracCycPhase[MAX_SATS][MAX_SIGS];
-	unsigned int SNR[MAX_SATS][MAX_SIGS];
-	unsigned int ExtSuppData[MAX_SATS][MAX_SIGS][2];
-
-	unsigned int Reference_P[MAX_SATS];
+	unsigned int GNSSmask, version ,ref_st_ID , multiple ,IODS ,smoothing ,position_presentation ,primary_GNSS_system,
+	primary_time_tag , time_tag_extension_type,fractional_second ,hour ,day , divergence_free_smoothing_indicator,
+	cumulative_session_transmitting_time_indicator ,Data_ID_change_counter,Data_ID_follow,Nms_follow,Supplementary_follow,
+	Pseudo_range_follow,Carrier_phase_follow,Resolution ,Reserved1,Reserved2, Satellite_mask[MAX_SATS/32], Signal_mask,
+	Satellite_mask_len[MAX_SATS/32],Signal_mask_len,sat_cnt, sig_cnt,sat[MAX_SATS],sat_sig_cnt[MAX_SATS],sig[MAX_SIGS],
+	sig_type[MAX_SATS][MAX_SIGS], offs, ncell,need_bits,Int_num_sat_ranges[MAX_SATS],Sat_rough_range[MAX_SATS], Azimuth[MAX_SATS],
+	Elevation[MAX_SATS], Doppler[MAX_SATS], Full_Range_Available[MAX_SATS], Satellite_Usage_Status[MAX_SATS], ChannelNumber[MAX_SATS][MAX_SIGS],
+	FineDoppler[MAX_SATS][MAX_SIGS], FinePseudoRange[MAX_SATS][MAX_SIGS], CycSlipCounter[MAX_SATS][MAX_SIGS], IntCycPhase[MAX_SATS][MAX_SIGS],
+	FracCycPhase[MAX_SATS][MAX_SIGS], SNR[MAX_SATS][MAX_SIGS], ExtSuppData[MAX_SATS][MAX_SIGS][2],Reference_P[MAX_SATS];
 
 	if(k + 58 > mes_len*8)
 	{
@@ -190,10 +145,6 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 	printf("===============================================================\n");
 
-/*	printf( "%02x %02x %02x %02x %02x %02x %02x %02x\n", 
-		Raw[ k], Raw[ k+1], Raw[ k+2], Raw[ k+3],
-		Raw[ k+4], Raw[ k+5], Raw[ k+6], Raw[ k+7]
-	);*/
 	 version = getbitu(Raw, k, 3);k+=3;
 	printf("version=%d\n", version); 
 
@@ -570,27 +521,11 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 		for(m=0; m < sig_cnt; m++)
 		{
 			sig_obs[m] = msm_sig_gps[sig[m]];
-			/*printf("sig_obs[%d] = %s\n", m, sig_obs[m]);*/
 			code[m]=obs2code(sig_obs[m],freq+m);
-			/*printf("code[%d] = %d\n", m, code[m]);
-			printf("freq[%d] = %d\n", m, freq[m]);*/
 		}
 		sigindex(SYS_GPS,code,freq,sig_cnt,0,ind);
 
-		/*for(m=0; m < sig_cnt; m++)*/
-		/*printf("ind[%d] = %d\n", m, ind[m]);*/
-
-		/*printf("NFREQ=%d, NEXOBS=%d\n", NFREQ,NEXOBS);*/
-
         prn=si+1; /* sdvigaem schetchik na 1 */
-/*		
-        if (!(s=satno(SYS_GPS,prn))) {
-            continue;
-        }
-*/		
-        /*raw->obs.data[index].time=raw->time;
-        raw->obs.data[index].sat=s;*/
-		/*printf("s=%d\n", s);*/
 
         if ((s=satno(SYS_GPS,prn))) {
             tt=timediff(raw->obs.data[0].time,raw->time);
@@ -600,16 +535,6 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
             index=obsindex(&raw->obs,raw->time,s);
         }
 
-		/*printf("ref=%lf\n", ((double)Reference_P[si])*RANGE_MS);*/
-		/*printf("N=%d\n", Int_num_sat_ranges[si]);
-		printf("N*1024=%d\n", (Int_num_sat_ranges[si]*1024) );
-		printf("Sat_rough_range[%d]=%d\n", si, Sat_rough_range[si] );
-		printf("ref[%d]=%lf\n", si, (double)Reference_P[si] );*/
-		/*printf("D=%d\n", Doppler[si]);*/
-
-		/*int index=obsindex(&raw->obs,raw->time,s);*/
-		/*printf("index=%d\n", index);
-		printf( "sat=%d sig=%d lim=%d\n", si, sat_sig_cnt[ si], NFREQ+NEXOBS );*/
         for (j = 0; j < sat_sig_cnt[ si] && j < NFREQ+NEXOBS; j++) 
 		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
 		{
@@ -621,10 +546,8 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				raw->obs.data[index].P[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/1024., 655.36,  FinePseudoRange[ si][ ss]*0.02);
 				if(wl > 0.0)
 				{
-            FinePseudoPhase = FracCycPhase[ si][ ss]/(256.) + IntCycPhase[si][ss];
+                                    double FinePseudoPhase = FracCycPhase[ si][ ss]/(256.) + IntCycPhase[si][ss];
 				    raw->obs.data[index].L[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/(wl*1024.))  , 4096, FinePseudoPhase);
-                    /*raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss]*RANGE_MS/wl + FracCycPhase[ si][ ss]*wl/(256.);*/
-					printf("FracCycPhase[ si][ ss]=%lf\n", FracCycPhase[ si][ ss]*wl/(256.));
 				}
 				if(wl > 0.0)
 				{
@@ -637,9 +560,6 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
         }
 
 		printf( "sat %d added\n", s );
-		/*
-        raw->obs.n = n; 
-        n++;*/
     }
 	return 1;
 }
@@ -653,7 +573,7 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 int input_atomf(raw_t *raw, FILE *f)
 {
 	unsigned char Raw[ 2048 ];
-    int k;
+        int k;
 	unsigned int mes_len, mes_num;
 	unsigned int mes_sub_num;
 
@@ -682,15 +602,8 @@ start:
 		goto start;
 	}
 
-/*	printf( "%02x %02x %02x %02x %02x %02x %02x %02x\n", 
-		Raw[ k], Raw[ k+1], Raw[ k+2], Raw[ k+3],
-		Raw[ k+4], Raw[ k+5], Raw[ k+6], Raw[ k+7]
-	);*/
-
 	k = 24;
 	mes_num = getbitu(Raw, k, 12); k+=12;
-	/*printf("mes_num=%d\n", mes_num);*/
-
 	if( mes_num != 4095)
 	{
 		printf("ne4095\n");
@@ -698,9 +611,6 @@ start:
 	}
 
 	 mes_sub_num = getbitu(Raw, k, 4); k+=4;
-/*	printf("mes_sub_num=%d\n", mes_sub_num );
-	 printf("k=%d\n", k);*/
-
 
 	/*decode message*/
 

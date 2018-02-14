@@ -123,14 +123,11 @@ static int get_active_bits( unsigned int mask, int len )
 #define CLIGHT      299792458.0         /* speed of light (m/s) */
 #define RANGE_MS    (CLIGHT*0.001)      /* range in 1 ms */
 
-
-int input_atomf(raw_t *raw, FILE *f)
+static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	extern const char *msm_sig_gps[32];
-	unsigned char Raw[ 2048 ];
-    int i, j, k, l, m;
-	unsigned int mes_len, mes_num , GNSSmask;
-	unsigned int mes_sub_num;
+    int i, j, l, m;
+	unsigned int GNSSmask;
 	unsigned int version ;
 	unsigned int ref_st_ID ;
 	unsigned int multiple ;
@@ -185,63 +182,21 @@ int input_atomf(raw_t *raw, FILE *f)
 
 	unsigned int Reference_P[MAX_SATS];
 
-start:
-	i=0;k=0;
-
-    while(1)
-	{
-        if(fread(  Raw, 1, 1, f ) != 1)
-			return -2;
-		if(Raw[0] == 0xD3)
-          break;
-	}
-
-    if(fread(  Raw+1, 1, 2, f ) != 2)
-		return -2;
-
-	/*printf("test=%d\n", getbitu(Raw, 0, 8));*/
-    mes_len = getbitu(Raw, 14, 10) + 3;
-/*	printf("mes_len=%d\n", mes_len);*/
-	if(fread(  Raw + 3, 1, mes_len , f ) != mes_len)
-		return -2;
-
-	/*printf("crc=%x\n",crc24q(Raw, mes_len));*/
-	/*printf("crc1=%x\n",getbitu(Raw, mes_len*8, 24));*/
-	if(crc24q(Raw, mes_len) != getbitu(Raw, (mes_len)*8, 24))
-	{
-		fseek( f, -mes_len-2 , SEEK_CUR );
-		goto start;
-	}
-
-/*	printf( "%02x %02x %02x %02x %02x %02x %02x %02x\n",*/ 
-/*		Raw[ 0], Raw[ 1], Raw[ 2], Raw[ 3],*/
-/*		Raw[ 4], Raw[ 5], Raw[ 6], Raw[ 7]*/
-/*	);*/
-
-	k = 24;
-	mes_num = getbitu(Raw, k, 12); k+=12;
-/*	printf("mes_num=%d\n", mes_num);*/
-
-	if( mes_num != 4095)
-	{
-		printf("ne4095\n");
-		goto start;
-	}
-
-	 mes_sub_num=getbitu(Raw, k, 4); k+=4;
-/*	printf("mes_sub_num=%d\n", mes_sub_num );*/
-	if(mes_sub_num != 7)
-		goto start;
 	if(k + 58 > mes_len*8)
 	{
 		printf("Invalid message: Len_Message Header \n");
-		goto start;
+		return -1;
 	}
 
 	printf("===============================================================\n");
 
+/*	printf( "%02x %02x %02x %02x %02x %02x %02x %02x\n", 
+		Raw[ k], Raw[ k+1], Raw[ k+2], Raw[ k+3],
+		Raw[ k+4], Raw[ k+5], Raw[ k+6], Raw[ k+7]
+	);*/
 	 version = getbitu(Raw, k, 3);k+=3;
 	printf("version=%d\n", version); 
+
 
 	 ref_st_ID = getbitu(Raw, k, 12);k+=12;
 	printf("reference stantion ID=%d\n", ref_st_ID); 
@@ -260,8 +215,8 @@ start:
 
 	GNSSmask = getbitu(Raw, k, 8);k+=8;
 	printf("GNSS mask=%x\n", GNSSmask); 
-/*	if(GNSSmask != 1)*/
-/*        printf("GNSSmask!=1\n");*/
+	if(GNSSmask != 1)
+        printf("GNSSmask!=1\n");
 
 	 primary_GNSS_system = getbitu(Raw, k, 3);k+=3;
 	printf("Primary GNSS system=%d\n", primary_GNSS_system); 
@@ -295,7 +250,7 @@ start:
 	if(k + 16 > mes_len*8)
 	{
 		printf("Invalid message: Len_Observable mask\n");
-		goto start;
+		return -1;
 	}
 
     Data_ID_change_counter = getbitu(Raw, k, 5); k+=5;
@@ -329,7 +284,7 @@ start:
 	if(Data_ID_follow != 1)
 	{
 		printf("Invalid message: Data Id follow\n");
-        goto start;
+        return -1;
 	}
 
 	if(version == 2)
@@ -337,7 +292,7 @@ start:
 	    if(k + 96 > mes_len*8)
 	    {
 	    	printf("Invalid message: Len_Sat/Sig MASK1\n");
-	    	goto start;
+	    	return -1;
 	    }
 
 		Satellite_mask[0] = getbitu(Raw, k, 32); k+=32;
@@ -354,7 +309,7 @@ start:
 	    if(k + 72 > mes_len*8)
 	    {
 	    	printf("Invalid message: Len_Sat/Sig MASK2\n");
-	    	goto start;
+	    	return -1;
 	    }
 
 		Satellite_mask[0] = getbitu(Raw, k, 32); k+=32;
@@ -379,13 +334,13 @@ start:
 	if( sat_cnt*sig_cnt > 64)
 	{
 		printf("Invalid CellMask %d\n", sat_cnt*sig_cnt);
-		goto start;
+		return -1;
 	}
 
 	if(k + sat_cnt*sig_cnt > mes_len*8)
 	{
 		printf("Invalid message: Len_Cell mask\n");
-		goto start;
+		return -1;
 	}
 
 	offs = 0;
@@ -450,7 +405,7 @@ start:
 	if(k + need_bits > mes_len*8)
 	{
 		printf("Invalid message: Len_Sattelite Data\n");
-		goto start;
+		return -1;
 	}
 
     for(i = 0; i < sat_cnt; i++)
@@ -504,7 +459,7 @@ start:
 	if(k + need_bits > mes_len*8)
 	{
 		printf("Invalid message: Len_Signal Data\n");
-		goto start;
+		return -1;
 	}
 
 	for(i = 0; i < sat_cnt; i++) /*PseudoRange */
@@ -584,7 +539,7 @@ start:
 	if(k + need_bits > mes_len*8)
 	{
 		printf("Invalid message: Len_PositionRef Data %d %d %d\n", k, mes_len*8, k + need_bits);
-		goto start;
+		return -1;
 	}
 
 	k += need_bits;
@@ -685,7 +640,80 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
         raw->obs.n = n; 
         n++;*/
     }
+	return 1;
+}
 
+static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	printf("====== YA V NAV ======\n");
+	return 1;
+}
+
+int input_atomf(raw_t *raw, FILE *f)
+{
+	unsigned char Raw[ 2048 ];
+    int k;
+	unsigned int mes_len, mes_num;
+	unsigned int mes_sub_num;
+
+
+start:
+    k=0;
+
+    while(1)
+	{
+        if(fread(  Raw, 1, 1, f ) != 1)
+			return -2;
+		if(Raw[0] == 0xD3)
+          break;
+	}
+
+    if(fread(  Raw+1, 1, 2, f ) != 2)
+		return -2;
+
+    mes_len = getbitu(Raw, 14, 10) + 3;
+	if(fread(  Raw + 3, 1, mes_len , f ) != mes_len)
+		return -2;
+
+	if(crc24q(Raw, mes_len) != getbitu(Raw, (mes_len)*8, 24))
+	{
+		fseek( f, -mes_len-2 , SEEK_CUR );
+		goto start;
+	}
+
+/*	printf( "%02x %02x %02x %02x %02x %02x %02x %02x\n", 
+		Raw[ k], Raw[ k+1], Raw[ k+2], Raw[ k+3],
+		Raw[ k+4], Raw[ k+5], Raw[ k+6], Raw[ k+7]
+	);*/
+
+	k = 24;
+	mes_num = getbitu(Raw, k, 12); k+=12;
+	/*printf("mes_num=%d\n", mes_num);*/
+
+	if( mes_num != 4095)
+	{
+		printf("ne4095\n");
+		goto start;
+	}
+
+	 mes_sub_num = getbitu(Raw, k, 4); k+=4;
+/*	printf("mes_sub_num=%d\n", mes_sub_num );
+	 printf("k=%d\n", k);*/
+
+
+	/*decode message*/
+
+	switch(mes_sub_num) {
+		case 5: 
+			if(-1 == decode_atom_nav(raw, Raw, k, mes_len) )
+				goto start;
+			break;
+		case 7: 
+			if(-1 == decode_atom_rnx(raw, Raw, k, mes_len) )
+				goto start;
+			break;
+		default: goto start;
+	}
 
 	return 1;
 }

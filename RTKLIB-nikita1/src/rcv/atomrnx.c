@@ -621,7 +621,8 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				raw->obs.data[index].P[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/1024., 655.36,  FinePseudoRange[ si][ ss]*0.02);
 				if(wl > 0.0)
 				{
-				    raw->obs.data[index].L[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/(wl*1024.), wl, FracCycPhase[ si][ ss]*wl/(256.));
+            FinePseudoPhase = FracCycPhase[ si][ ss]/(256.) + IntCycPhase[si][ss];
+				    raw->obs.data[index].L[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/(wl*1024.))  , 4096, FinePseudoPhase);
                     /*raw->obs.data[index].L[ind[j]] = IntCycPhase[ si][ ss]*RANGE_MS/wl + FracCycPhase[ si][ ss]*wl/(256.);*/
 					printf("FracCycPhase[ si][ ss]=%lf\n", FracCycPhase[ si][ ss]*wl/(256.));
 				}

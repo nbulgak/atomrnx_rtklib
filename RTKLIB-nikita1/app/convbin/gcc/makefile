@@ -17,7 +17,7 @@ all  : convbin
 
 convbin    : convbin.o rtkcmn.o rinex.o sbas.o preceph.o rcvraw.o convrnx.o
 convbin    : rtcm.o rtcm2.o rtcm3.o rtcm3e.o pntpos.o ephemeris.o ionex.o
-convbin    : novatel.o ss2.o ublox.o crescent.o skytraq.o gw10.o javad.o nvs.o atomrnx.o
+convbin    : novatel.o ss2.o ublox.o crescent.o skytraq.o gw10.o javad.o nvs.o atom.o
 convbin    : binex.o rt17.o qzslex.o
 
 convbin.o  : ../convbin.c
@@ -62,8 +62,8 @@ gw10.o     : $(SRC)/rcv/gw10.c
 	$(CC) -c $(CFLAGS) $(SRC)/rcv/gw10.c
 javad.o    : $(SRC)/rcv/javad.c
 	$(CC) -c $(CFLAGS) $(SRC)/rcv/javad.c
-atomrnx.o    : $(SRC)/rcv/javad.c
-	$(CC) -c $(CFLAGS) $(SRC)/rcv/atomrnx.c
+atom.o    : $(SRC)/rcv/javad.c
+	$(CC) -c $(CFLAGS) $(SRC)/rcv/atom.c
 nvs.o      : $(SRC)/rcv/nvs.c
 	$(CC) -c $(CFLAGS) $(SRC)/rcv/nvs.c
 binex.o    : $(SRC)/rcv/binex.c
@@ -94,7 +94,7 @@ crescent.o : $(SRC)/rtklib.h
 skytraq.o  : $(SRC)/rtklib.h
 gw10.o     : $(SRC)/rtklib.h
 javad.o    : $(SRC)/rtklib.h
-atomrnx.o  : $(SRC)/rtklib.h
+atom.o     : $(SRC)/rtklib.h
 nvs.o      : $(SRC)/rtklib.h
 binex.o    : $(SRC)/rtklib.h
 rt17.o     : $(SRC)/rtklib.h

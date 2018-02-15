@@ -199,16 +199,25 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	extern const char *msm_sig_gps[32];
     int i, j, l, m;
+<<<<<<< HEAD
 	double FinePseudoPhase;
 	int Doppler[MAX_SATS], FineDoppler[MAX_SATS][MAX_SIGS];
 unsigned int GNSSmask, version ,ref_st_ID , multiple ,IODS ,smoothing ,position_presentation ,primary_GNSS_system,
+=======
+	unsigned int GNSSmask, version ,ref_st_ID , multiple ,IODS ,smoothing ,position_presentation ,primary_GNSS_system,
+>>>>>>> 9543ff940435499cb6930984682aed75356d8bbb
 	primary_time_tag , time_tag_extension_type,fractional_second ,hour ,day , divergence_free_smoothing_indicator,
 	cumulative_session_transmitting_time_indicator ,Data_ID_change_counter,Data_ID_follow,Nms_follow,Supplementary_follow,
 	Pseudo_range_follow,Carrier_phase_follow,Resolution ,Reserved1,Reserved2, Satellite_mask[MAX_SATS/32], Signal_mask,
 	Satellite_mask_len[MAX_SATS/32],Signal_mask_len,sat_cnt, sig_cnt,sat[MAX_SATS],sat_sig_cnt[MAX_SATS],sig[MAX_SIGS],
 	sig_type[MAX_SATS][MAX_SIGS], offs, ncell,need_bits,Int_num_sat_ranges[MAX_SATS],Sat_rough_range[MAX_SATS], Azimuth[MAX_SATS],
+<<<<<<< HEAD
 	Elevation[MAX_SATS], Full_Range_Available[MAX_SATS], Satellite_Usage_Status[MAX_SATS], ChannelNumber[MAX_SATS][MAX_SIGS],
 	FinePseudoRange[MAX_SATS][MAX_SIGS], CycSlipCounter[MAX_SATS][MAX_SIGS], IntCycPhase[MAX_SATS][MAX_SIGS],
+=======
+	Elevation[MAX_SATS], Doppler[MAX_SATS], Full_Range_Available[MAX_SATS], Satellite_Usage_Status[MAX_SATS], ChannelNumber[MAX_SATS][MAX_SIGS],
+	FineDoppler[MAX_SATS][MAX_SIGS], FinePseudoRange[MAX_SATS][MAX_SIGS], CycSlipCounter[MAX_SATS][MAX_SIGS], IntCycPhase[MAX_SATS][MAX_SIGS],
+>>>>>>> 9543ff940435499cb6930984682aed75356d8bbb
 	FracCycPhase[MAX_SATS][MAX_SIGS], SNR[MAX_SATS][MAX_SIGS], ExtSuppData[MAX_SATS][MAX_SIGS][2],Reference_P[MAX_SATS];
 
 	if(k + 58 > mes_len*8)
@@ -217,8 +226,13 @@ unsigned int GNSSmask, version ,ref_st_ID , multiple ,IODS ,smoothing ,position_
 		return -1;
 	}
 
+<<<<<<< HEAD
 	printf("===============================================================RNX\n");
     /*MESSAGE HEADER*/
+=======
+	printf("===============================================================\n");
+
+>>>>>>> 9543ff940435499cb6930984682aed75356d8bbb
 	 version = getbitu(Raw, k, 3);k+=3;
 	printf("version=%d\n", version); 
 
@@ -608,7 +622,10 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
             index=obsindex(&raw->obs,raw->time,s);
         }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9543ff940435499cb6930984682aed75356d8bbb
         for (j = 0; j < sat_sig_cnt[ si] && j < NFREQ+NEXOBS; j++) 
 		/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
 		{
@@ -620,8 +637,13 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
 				raw->obs.data[index].P[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/1024., 655.36,  FinePseudoRange[ si][ ss]*0.02);
 				if(wl > 0.0)
 				{
+<<<<<<< HEAD
                     FinePseudoPhase = (double)(FracCycPhase[ si][ ss]/(256.) + IntCycPhase[si][ss]);
   				    raw->obs.data[index].L[ind[j]] = RestorePValue( (double)Reference_P[si]*RANGE_MS/(wl*1024.)  , 4096, FinePseudoPhase);
+=======
+                                    double FinePseudoPhase = FracCycPhase[ si][ ss]/(256.) + IntCycPhase[si][ss];
+				    raw->obs.data[index].L[ind[j]] = RestorePValue( ((double)Reference_P[si])*RANGE_MS/(wl*1024.))  , 4096, FinePseudoPhase);
+>>>>>>> 9543ff940435499cb6930984682aed75356d8bbb
 				}
 				if(wl > 0.0)
 				{
@@ -634,7 +656,10 @@ printf("\n Message Complete!!! %d %d\n\n", k, mes_len*8);
         }
 
 		printf( "sat %d added\n", s );
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9543ff940435499cb6930984682aed75356d8bbb
     }
 	return 1;
 }
@@ -673,7 +698,7 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 int input_atomf(raw_t *raw, FILE *f)
 {
 	unsigned char Raw[ 2048 ];
-    int k;
+        int k;
 	unsigned int mes_len, mes_num;
 	unsigned int mes_sub_num;
 
@@ -701,11 +726,16 @@ start:
 		goto start;
 	}
 
+<<<<<<< HEAD
 
 	k = 24;
 	mes_num = getbitu(Raw, k, 12); k+=12;
 
 
+=======
+	k = 24;
+	mes_num = getbitu(Raw, k, 12); k+=12;
+>>>>>>> 9543ff940435499cb6930984682aed75356d8bbb
 	if( mes_num != 4095)
 	{
 		printf("ne4095\n");

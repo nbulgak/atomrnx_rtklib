@@ -2,78 +2,6 @@
 #include <stdarg.h>
 #include "rtklib.h"
 
-/* decode type 1019: gps ephemerides -----------------------------------------*/
-static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
-{
-	eph_t eph = { 0 };
-	double toc, sqrtA;
-	char *msg;
-	int i = k, prn, sat, week, sys = SYS_GPS;
-
-	if (i + 476 <= mes_len * 8) {
-		prn = getbitu(Raw, i, 6);              i += 6;
-		week = getbitu(Raw, i, 10);              i += 10;
-		raw->nav.eph->sva = getbitu(Raw, i, 4);              i += 4;
-		raw->nav.eph->code = getbitu(Raw, i, 2);              i += 2;
-		raw->nav.eph->idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
-		raw->nav.eph->iode = getbitu(Raw, i, 8);              i += 8;
-		toc = getbitu(Raw, i, 16)*16.0;         i += 16;
-		raw->nav.eph->f2 = getbits(Raw, i, 8)*P2_55;        i += 8;
-		raw->nav.eph->f1 = getbits(Raw, i, 16)*P2_43;        i += 16;
-		raw->nav.eph->f0 = getbits(Raw, i, 22)*P2_31;        i += 22;
-		raw->nav.eph->iodc = getbitu(Raw, i, 10);              i += 10;
-		raw->nav.eph->crs = getbits(Raw, i, 16)*P2_5;         i += 16;
-		raw->nav.eph->deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
-		raw->nav.eph->M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		raw->nav.eph->cuc = getbits(Raw, i, 16)*P2_29;        i += 16;
-		raw->nav.eph->e = getbitu(Raw, i, 32)*P2_33;        i += 32;
-		raw->nav.eph->cus = getbits(Raw, i, 16)*P2_29;        i += 16;
-		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
-		raw->nav.eph->toes = getbitu(Raw, i, 16)*16.0;         i += 16;
-		raw->nav.eph->cic = getbits(Raw, i, 16)*P2_29;        i += 16;
-		raw->nav.eph->OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		raw->nav.eph->cis = getbits(Raw, i, 16)*P2_29;        i += 16;
-		raw->nav.eph->i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		raw->nav.eph->crc = getbits(Raw, i, 16)*P2_5;         i += 16;
-		raw->nav.eph->omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		raw->nav.eph->OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
-		raw->nav.eph->tgd[0] = getbits(Raw, i, 8)*P2_31;        i += 8;
-		raw->nav.eph->svh = getbitu(Raw, i, 6);              i += 6;
-		raw->nav.eph->flag = getbitu(Raw, i, 1);              i += 1;
-		raw->nav.eph->fit = getbitu(Raw, i, 1) ? 0.0 : 4.0; /* 0:4hr,1:>4hr */
-	}
-	/*
-	else {
-	trace(2, "rtcm3 1019 length error: len=%d\n", rtcm->len);
-	return -1;
-	}
-	if (prn >= 40) {
-	sys = SYS_SBS; prn += 80;
-	}
-	trace(4, "decode_type1019: prn=%d iode=%d toe=%.0f\n", prn, raw->nav.eph->iode, raw->nav.eph->toes);
-
-	if (rtcm->outtype) {
-	msg = rtcm->msgtype + strlen(rtcm->msgtype);
-	sprintf(msg, " prn=%2d iode=%3d iodc=%3d week=%d toe=%6.0f toc=%6.0f svh=%02X",
-	prn, raw->nav.eph->iode, raw->nav.eph->iodc, week, raw->nav.eph->toes, toc, raw->nav.eph->svh);
-	}
-	if (!(sat = satno(sys, prn))) {
-	trace(2, "rtcm3 1019 satellite number error: prn=%d\n", prn);
-	return -1;
-	}
-	*/
-	eph.sat = sat;
-	raw->nav.eph->week = adjgpsweek(week);
-	raw->nav.eph->toe = gpst2time(raw->nav.eph->week, raw->nav.eph->toes);
-	raw->nav.eph->toc = gpst2time(raw->nav.eph->week, toc);
-	/*raw->nav.eph->ttr = rtcm->time;*/
-	raw->nav.eph->A = sqrtA*sqrtA;
-
-	raw->nav.eph[sat - 1] = eph;
-	/*raw->nav.ephsat = sat;*/
-	return 2;
-}
-
 double RestorePValue(double Reference, double Ambiguity, double Modulo)
 {
 
@@ -189,6 +117,112 @@ static int get_active_bits(unsigned int mask, int len)
 		res++;
 	return(res);
 }
+
+
+/* decode type 1019: gps ephemerides -----------------------------------------*/
+static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	eph_t eph = { 0 };
+	double toc, sqrtA;
+	char *msg;
+	int i = k, prn, sat, week, sys = SYS_GPS;
+	printf("offset=%d\n", k);
+
+	if (i + 476 <= mes_len * 8) {
+		prn = getbitu(Raw, i, 6);              i += 6;
+		week = getbitu(Raw, i, 10);              i += 10;
+		raw->nav.eph->sva = getbitu(Raw, i, 4);              i += 4;
+		printf("sva=%d\n", raw->nav.eph->sva);
+		raw->nav.eph->code = getbitu(Raw, i, 2);              i += 2;
+		printf("code=%d\n", raw->nav.eph->code);
+		raw->nav.eph->idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
+		printf("idot=%.10lf\n", raw->nav.eph->idot);
+		raw->nav.eph->iode = getbitu(Raw, i, 8);              i += 8;
+		printf("iode=%d\n", raw->nav.eph->iode);
+		toc = getbitu(Raw, i, 16)*16.0;         i += 16;
+		printf("toc=%.10lf\n", toc);
+		raw->nav.eph->f2 = getbits(Raw, i, 8)*P2_55;        i += 8;
+		printf("f2=%.10lf\n", raw->nav.eph->f2);
+		raw->nav.eph->f1 = getbits(Raw, i, 16)*P2_43;        i += 16;
+		printf("f1=%.10lf\n", raw->nav.eph->f1);
+		raw->nav.eph->f0 = getbits(Raw, i, 22)*P2_31;        i += 22;
+		printf("f0=%.10lf\n", raw->nav.eph->f0);
+		raw->nav.eph->iodc = getbitu(Raw, i, 10);              i += 10;
+		printf("iodc=%d\n", raw->nav.eph->iodc);
+		raw->nav.eph->crs = getbits(Raw, i, 16)*P2_5;         i += 16;
+		printf("crs=%.10lf\n", raw->nav.eph->crs);
+		raw->nav.eph->deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
+		printf("deln=%.10lf\n", raw->nav.eph->deln);
+		raw->nav.eph->M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		printf("M0=%.10lf\n", raw->nav.eph->M0);
+		raw->nav.eph->cuc = getbits(Raw, i, 16)*P2_29;        i += 16;
+		printf("cuc=%.10lf\n", raw->nav.eph->cuc);
+		raw->nav.eph->e = getbitu(Raw, i, 32)*P2_33;        i += 32;
+		printf("e=%.10lf\n", raw->nav.eph->e);
+		raw->nav.eph->cus = getbits(Raw, i, 16)*P2_29;        i += 16;
+		printf("cus=%.10lf\n", raw->nav.eph->cus);
+		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
+		printf("sqrtA=%.10lf\n", sqrtA);
+		raw->nav.eph->toes = getbitu(Raw, i, 16)*16.0;         i += 16;
+		printf("toes=%.10lf\n", raw->nav.eph->toes);
+		raw->nav.eph->cic = getbits(Raw, i, 16)*P2_29;        i += 16;
+		printf("cic=%.10lf\n", raw->nav.eph->cic);
+		raw->nav.eph->OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		printf("OMG0=%.10lf\n", raw->nav.eph->OMG0);
+		raw->nav.eph->cis = getbits(Raw, i, 16)*P2_29;        i += 16;
+		printf("cis=%.10lf\n", raw->nav.eph->cis);
+		raw->nav.eph->i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		printf("i0=%.10lf\n", raw->nav.eph->i0);
+		raw->nav.eph->crc = getbits(Raw, i, 16)*P2_5;         i += 16;
+		printf("crc=%.10lf\n", raw->nav.eph->crc);
+		raw->nav.eph->omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		printf("omg=%.10lf\n", raw->nav.eph->omg);
+		raw->nav.eph->OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
+		printf("OMGd=%.10lf\n", raw->nav.eph->OMGd);
+		raw->nav.eph->tgd[0] = getbits(Raw, i, 8)*P2_31;        i += 8;
+		printf("tgd[0]=%.10lf\n", raw->nav.eph->tgd[0]);
+		raw->nav.eph->svh = getbitu(Raw, i, 6);              i += 6;
+		printf("svh=%d\n", raw->nav.eph->svh);
+		raw->nav.eph->flag = getbitu(Raw, i, 1);              i += 1;
+		printf("flag=%d\n", raw->nav.eph->flag);
+		raw->nav.eph->fit = getbitu(Raw, i, 1) ? 0.0 : 4.0; /* 0:4hr,1:>4hr */
+		printf("fit=%d\n", raw->nav.eph->fit);
+	}
+	else {
+		printf("Invalid message: Len_NAV\n");
+		return -1;
+	}
+	if (prn >= 40) {
+	sys = SYS_SBS; prn += 80;
+	}
+/*	trace(4, "decode_type1019: prn=%d iode=%d toe=%.0f\n", prn, raw->nav.eph->iode, raw->nav.eph->toes);
+
+	if (rtcm->outtype) {
+	msg = rtcm->msgtype + strlen(rtcm->msgtype);
+	sprintf(msg, " prn=%2d iode=%3d iodc=%3d week=%d toe=%6.0f toc=%6.0f svh=%02X",
+	prn, raw->nav.eph->iode, raw->nav.eph->iodc, week, raw->nav.eph->toes, toc, raw->nav.eph->svh);
+	}
+	*/
+	if (!(sat = satno(sys, prn))) {
+	trace(2, "rtcm3 1019 satellite number error: prn=%d\n", prn);
+	return -1;
+	}
+	eph.sat = sat;
+	printf("SAT=%d\n", eph.sat);
+	raw->nav.eph->week = adjgpsweek(week);
+	printf("WEEK=%d\n", raw->nav.eph->week);
+	raw->nav.eph->toe = gpst2time(raw->nav.eph->week, raw->nav.eph->toes);
+	printf("TOE=%d\n", raw->nav.eph->toe);
+	raw->nav.eph->toc = gpst2time(raw->nav.eph->week, toc);
+	printf("TOC=%d\n", raw->nav.eph->toc);
+	/*raw->nav.eph->ttr = rtcm->time;*/
+	raw->nav.eph->A = sqrtA*sqrtA;
+
+	raw->nav.eph[sat - 1] = eph;
+	/*raw->nav.ephsat = sat;*/
+	return 2;
+}
+
 
 #define MAX_SATS 64
 #define MAX_SIGS 64

@@ -2,6 +2,7 @@
 *.obs
 *.ini
 *.local
+build
 Release
 Release_Build
 Debug_Build

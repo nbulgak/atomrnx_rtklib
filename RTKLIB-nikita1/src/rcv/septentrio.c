@@ -233,7 +233,7 @@ static int decode_measepoch(raw_t *raw){
     unsigned char signType1, antID, signType2, antID2;
     unsigned int codeLSB, SB2Num, SB1Num, BlockLength, sys, h;
     unsigned char codeMSB, rxch;
-    static double lastTow=0./0.;
+    static double lastTow = -1.0;// 0. / 0.;
 
     /* signals for type2 sub-block */
     int CodeOffsetMSB, DopplerOffsetMSB;

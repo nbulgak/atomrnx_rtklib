@@ -359,17 +359,15 @@ static void setopt_obstype(const unsigned char *codes,
     
     if (!(navsys[sys]&opt->navsys)) return;
     
-    for (i=0;codes[i];i++) {
-		printf("codes[%d] = %d\n", i, codes[i]);
-        
+    for (i=0;codes[i];i++) {     
         if (!(id=code2obs(codes[i],&freq))) continue;
         
         if (!(opt->freqtype&(1<<(freq-1)))||opt->mask[sys][codes[i]-1]=='0') {
             continue;
         }
         for (j=0;j<4;j++) {
-			if (!(opt->obstype&(1<<j))) {printf("!(opt->obstype&(1<<j))\n"); continue;}
-			if (types&&!(types[i]&(1<<j))) {printf("types[i]&(1<<j))\n"); continue;}
+			if (!(opt->obstype&(1<<j))) continue;
+			if (types&&!(types[i]&(1<<j))) continue;
             
             /* observation type in ver.3 */
             sprintf(type,"%c%s",type_str[j],id);
@@ -390,7 +388,6 @@ static void setopt_obstype(const unsigned char *codes,
             }
             else if (opt->nobs[sys]<MAXOBSTYPE) { /* ver.3 */
                 strcpy(opt->tobs[sys][opt->nobs[sys]++],type);
-				printf("nobs_setopt_obstype[%d]=%d, i=%d, j=%d\n", sys, opt->nobs[sys], i, j);
             }
         }
     }
@@ -578,7 +575,7 @@ static void set_obstype(int format, rnxopt_t *opt)
             case STRFMT_BINEX: codes=codes_rinex[i]; break;
             case STRFMT_RT17 : codes=codes_rt17 [i]; break;
             case STRFMT_RINEX: codes=codes_rinex[i]; break;
-			case STRFMT_ATOM: codes=codes_atom[i]; break;
+			case STRFMT_ATOM:  codes=codes_atom[i];  break;
             default:           codes=codes_other[i]; break;
         }
         /* set observation types in rinex option */
@@ -701,7 +698,7 @@ static void convnav(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n)
     int sys,prn;
     
     trace(3,"convnav :\n");
-    
+  
     ts1=opt->ts; if (ts1.time!=0) ts1=timeadd(ts1,-MAXDTOE);
     te1=opt->te; if (te1.time!=0) te1=timeadd(te1, MAXDTOE);
     ts2=opt->ts; if (ts2.time!=0) ts2=timeadd(ts2,-MAXDTOE_GLO);
@@ -710,11 +707,8 @@ static void convnav(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n)
     sys=satsys(str->sat,&prn)&opt->navsys;
     
     if (sys==SYS_GPS) {
-        
         if (opt->exsats[str->sat-1]==1||!screent(str->time,ts1,te1,0.0)) return;
-        
         if (ofp[1]) {
-            
             /* output rinex nav */
             outrnxnavb(ofp[1],opt,str->nav->eph+str->sat-1);
             n[1]++;
@@ -725,7 +719,7 @@ static void convnav(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n)
         if (opt->exsats[str->sat-1]==1||!screent(str->time,ts2,te2,0.0)) return;
         
         if (ofp[1]&&opt->rnxver>2.99) {
-            
+
             /* output rinex nav */
             outrnxgnavb(ofp[1],opt,str->nav->geph+prn-1);
             n[1]++;

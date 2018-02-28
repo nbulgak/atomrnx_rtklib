@@ -127,60 +127,63 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	char *msg;
 	int i = k, prn, sat, week, sys = SYS_GPS;
 	printf("offset=%d\n", k);
+	/*raw->nav.nmax = raw->nav.n;*/
 
 	if (i + 476 <= mes_len * 8) {
 		prn = getbitu(Raw, i, 6);              i += 6;
+		printf("prn=%d\n", prn);
 		week = getbitu(Raw, i, 10);              i += 10;
+		printf("week=%d\n", week);
 		raw->nav.eph->sva = getbitu(Raw, i, 4);              i += 4;
 		printf("sva=%d\n", raw->nav.eph->sva);
 		raw->nav.eph->code = getbitu(Raw, i, 2);              i += 2;
 		printf("code=%d\n", raw->nav.eph->code);
 		raw->nav.eph->idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
-		printf("idot=%.10lf\n", raw->nav.eph->idot);
+		printf("idot=%.15lf\n", raw->nav.eph->idot);
 		raw->nav.eph->iode = getbitu(Raw, i, 8);              i += 8;
 		printf("iode=%d\n", raw->nav.eph->iode);
 		toc = getbitu(Raw, i, 16)*16.0;         i += 16;
-		printf("toc=%.10lf\n", toc);
+		printf("toc=%.15lf\n", toc);
 		raw->nav.eph->f2 = getbits(Raw, i, 8)*P2_55;        i += 8;
-		printf("f2=%.10lf\n", raw->nav.eph->f2);
+		printf("f2=%.15lf\n", raw->nav.eph->f2);
 		raw->nav.eph->f1 = getbits(Raw, i, 16)*P2_43;        i += 16;
-		printf("f1=%.10lf\n", raw->nav.eph->f1);
+		printf("f1=%.15lf\n", raw->nav.eph->f1);
 		raw->nav.eph->f0 = getbits(Raw, i, 22)*P2_31;        i += 22;
-		printf("f0=%.10lf\n", raw->nav.eph->f0);
+		printf("f0=%.15lf\n", raw->nav.eph->f0);
 		raw->nav.eph->iodc = getbitu(Raw, i, 10);              i += 10;
 		printf("iodc=%d\n", raw->nav.eph->iodc);
 		raw->nav.eph->crs = getbits(Raw, i, 16)*P2_5;         i += 16;
-		printf("crs=%.10lf\n", raw->nav.eph->crs);
+		printf("crs=%.15lf\n", raw->nav.eph->crs);
 		raw->nav.eph->deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
-		printf("deln=%.10lf\n", raw->nav.eph->deln);
+		printf("deln=%.15lf\n", raw->nav.eph->deln);
 		raw->nav.eph->M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		printf("M0=%.10lf\n", raw->nav.eph->M0);
+		printf("M0=%.15lf\n", raw->nav.eph->M0);
 		raw->nav.eph->cuc = getbits(Raw, i, 16)*P2_29;        i += 16;
-		printf("cuc=%.10lf\n", raw->nav.eph->cuc);
+		printf("cuc=%.15lf\n", raw->nav.eph->cuc);
 		raw->nav.eph->e = getbitu(Raw, i, 32)*P2_33;        i += 32;
-		printf("e=%.10lf\n", raw->nav.eph->e);
+		printf("e=%.15lf\n", raw->nav.eph->e);
 		raw->nav.eph->cus = getbits(Raw, i, 16)*P2_29;        i += 16;
-		printf("cus=%.10lf\n", raw->nav.eph->cus);
+		printf("cus=%.15lf\n", raw->nav.eph->cus);
 		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
-		printf("sqrtA=%.10lf\n", sqrtA);
+		printf("sqrtA=%.15lf\n", sqrtA);
 		raw->nav.eph->toes = getbitu(Raw, i, 16)*16.0;         i += 16;
-		printf("toes=%.10lf\n", raw->nav.eph->toes);
+		printf("toes=%.15lf\n", raw->nav.eph->toes);
 		raw->nav.eph->cic = getbits(Raw, i, 16)*P2_29;        i += 16;
-		printf("cic=%.10lf\n", raw->nav.eph->cic);
+		printf("cic=%.15lf\n", raw->nav.eph->cic);
 		raw->nav.eph->OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		printf("OMG0=%.10lf\n", raw->nav.eph->OMG0);
+		printf("OMG0=%.15lf\n", raw->nav.eph->OMG0);
 		raw->nav.eph->cis = getbits(Raw, i, 16)*P2_29;        i += 16;
-		printf("cis=%.10lf\n", raw->nav.eph->cis);
+		printf("cis=%.15lf\n", raw->nav.eph->cis);
 		raw->nav.eph->i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		printf("i0=%.10lf\n", raw->nav.eph->i0);
+		printf("i0=%.15lf\n", raw->nav.eph->i0);
 		raw->nav.eph->crc = getbits(Raw, i, 16)*P2_5;         i += 16;
-		printf("crc=%.10lf\n", raw->nav.eph->crc);
+		printf("crc=%.15lf\n", raw->nav.eph->crc);
 		raw->nav.eph->omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		printf("omg=%.10lf\n", raw->nav.eph->omg);
+		printf("omg=%.15lf\n", raw->nav.eph->omg);
 		raw->nav.eph->OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
-		printf("OMGd=%.10lf\n", raw->nav.eph->OMGd);
+		printf("OMGd=%.15lf\n", raw->nav.eph->OMGd);
 		raw->nav.eph->tgd[0] = getbits(Raw, i, 8)*P2_31;        i += 8;
-		printf("tgd[0]=%.10lf\n", raw->nav.eph->tgd[0]);
+		printf("tgd[0]=%.15lf\n", raw->nav.eph->tgd[0]);
 		raw->nav.eph->svh = getbitu(Raw, i, 6);              i += 6;
 		printf("svh=%d\n", raw->nav.eph->svh);
 		raw->nav.eph->flag = getbitu(Raw, i, 1);              i += 1;
@@ -204,7 +207,6 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	}
 	*/
 	if (!(sat = satno(sys, prn))) {
-	trace(2, "rtcm3 1019 satellite number error: prn=%d\n", prn);
 	return -1;
 	}
 	eph.sat = sat;
@@ -218,8 +220,12 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	/*raw->nav.eph->ttr = rtcm->time;*/
 	raw->nav.eph->A = sqrtA*sqrtA;
 
+	if (raw->nav.eph->iode == raw->nav.eph[sat - 1].iode) return 0; /* unchanged */
+
+	printf("number of broadcast ephemeris. n=%d, nmax=%d\n", raw->nav.n, raw->nav.nmax);
+
 	raw->nav.eph[sat - 1] = eph;
-	/*raw->nav.ephsat = sat;*/
+	raw->ephsat = sat;
 	return 2;
 }
 
@@ -676,6 +682,7 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	/*printf("====== YA V NAV ======\n");*/
+	int ret = -1, type = 0;
 
 	unsigned int version, ref_st_ID, NAV_message_type, Standardized_message_number;
 
@@ -698,16 +705,22 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 	switch (Standardized_message_number) {
 	case 1019:
-		decode_type1019(raw, Raw, k, mes_len); break;
+		ret=decode_type1019(raw, Raw, k, mes_len); break;
 	}
 
-	return 1;
+	if (ret >= 0) {
+		type = Standardized_message_number - 1000;
+		if (1 <= type&&type <= 299) raw->msgtype[type]++; else raw->msgtype[0]++;
+		printf("!!!!`get nav message`!!!!\n");
+		printf("raw->msgtype[%d]=%d\n", type, raw->msgtype[type]);
+	}
+	return ret;
 }
 
 int input_atomf(raw_t *raw, FILE *f)
 {
 	unsigned char Raw[2048];
-	int k;
+	int k, type = -1;
 	unsigned int mes_len, mes_num;
 	unsigned int mes_sub_num;
 
@@ -754,14 +767,16 @@ start:
 	case 5:
 		if (-1 == decode_atom_nav(raw, Raw, k, mes_len))
 			goto start;
+		type = 2;
 		break;
 	case 7:
 		if (-1 == decode_atom_rnx(raw, Raw, k, mes_len))
 			goto start;
+		type = 1;
 		break;
 	default: goto start;
 	}
 
-	return 1;
+	return type;
 }
 

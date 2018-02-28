@@ -390,7 +390,7 @@ extern "C" {
 #define STRFMT_NVS   10                 /* stream format: NVS NVC08C */
 #define STRFMT_BINEX 11                 /* stream format: BINEX */
 #define STRFMT_RT17  12                 /* stream format: Trimble RT17 */
-#define STRFMT_ATOM  13                  /* stream format: Ashtech ATOM */
+#define STRFMT_ATOM  13                 /* stream format: Ashtech ATOM */
 #define STRFMT_LEXR  14                 /* stream format: Furuno LPY-10000 */
 #define STRFMT_SEPT  15                 /* stream format: Septentrio */
 #define STRFMT_RINEX 16                 /* stream format: RINEX */

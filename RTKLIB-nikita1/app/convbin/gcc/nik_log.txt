@@ -36,9 +36,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57552
-TOC=-57552
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57680
+TOC=-57680
 !!!!`get nav message`!!!!
 raw->msgtype[19]=1
 ===============================================================RNX
@@ -120,9 +119,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=2
 ===============================================================RNX
@@ -204,9 +202,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=3
 ===============================================================RNX
@@ -288,9 +285,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=4
 ===============================================================RNX
@@ -372,9 +368,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=5
 ===============================================================RNX
@@ -456,9 +451,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=6
 ===============================================================RNX
@@ -540,9 +534,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=7
 ===============================================================RNX
@@ -624,9 +617,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=8
 ===============================================================RNX
@@ -708,9 +700,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=9
 ===============================================================RNX
@@ -792,9 +783,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=10
 ===============================================================RNX
@@ -876,9 +866,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=11
 ===============================================================RNX
@@ -1328,9 +1317,8 @@ flag=1
 fit=0
 SAT=2
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=12
 ===============================================================RNX
@@ -1412,9 +1400,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=13
 ===============================================================RNX
@@ -6740,9 +6727,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=14
 ===============================================================RNX
@@ -13589,9 +13575,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=15
 ===============================================================RNX
@@ -13673,9 +13658,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=16
 ===============================================================RNX
@@ -13757,9 +13741,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=17
 ===============================================================RNX
@@ -13841,9 +13824,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=18
 ===============================================================RNX
@@ -13925,9 +13907,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=19
 ===============================================================RNX
@@ -14009,9 +13990,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=20
 ===============================================================RNX
@@ -14093,9 +14073,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=21
 ===============================================================RNX
@@ -14177,9 +14156,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=22
 ===============================================================RNX
@@ -14261,9 +14239,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=23
 ===============================================================RNX
@@ -14345,9 +14322,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=24
 ===============================================================RNX
@@ -14797,9 +14773,8 @@ flag=1
 fit=0
 SAT=2
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=25
 ===============================================================RNX
@@ -14881,9 +14856,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=26
 ===============================================================RNX
@@ -20209,9 +20183,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=27
 ===============================================================RNX
@@ -27061,9 +27034,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=28
 ===============================================================RNX
@@ -27146,9 +27118,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=29
 ===============================================================RNX
@@ -27231,9 +27202,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=30
 ===============================================================RNX
@@ -27316,9 +27286,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=31
 ===============================================================RNX
@@ -27401,9 +27370,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=32
 ===============================================================RNX
@@ -27486,9 +27454,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=33
 ===============================================================RNX
@@ -27571,9 +27538,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=34
 ===============================================================RNX
@@ -27656,9 +27622,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=35
 ===============================================================RNX
@@ -27741,9 +27706,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=36
 ===============================================================RNX
@@ -27826,9 +27790,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=37
 ===============================================================RNX
@@ -28287,9 +28250,8 @@ flag=1
 fit=0
 SAT=2
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=38
 ===============================================================RNX
@@ -28372,9 +28334,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=39
 ===============================================================RNX
@@ -33815,9 +33776,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=40
 ===============================================================RNX
@@ -40830,9 +40790,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=41
 ===============================================================RNX
@@ -40915,9 +40874,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=42
 ===============================================================RNX
@@ -41000,9 +40958,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=43
 ===============================================================RNX
@@ -41085,9 +41042,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=44
 ===============================================================RNX
@@ -41170,9 +41126,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=45
 ===============================================================RNX
@@ -41255,9 +41210,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=46
 ===============================================================RNX
@@ -41340,9 +41294,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=47
 ===============================================================RNX
@@ -41425,9 +41378,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=48
 ===============================================================RNX
@@ -41510,9 +41462,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=49
 ===============================================================RNX
@@ -41595,9 +41546,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=50
 ===============================================================RNX
@@ -42056,9 +42006,8 @@ flag=1
 fit=0
 SAT=2
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=51
 ===============================================================RNX
@@ -42141,9 +42090,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=52
 ===============================================================RNX
@@ -47584,9 +47532,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=53
 ===============================================================RNX
@@ -54599,9 +54546,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=54
 ===============================================================RNX
@@ -54684,9 +54630,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=55
 ===============================================================RNX
@@ -54769,9 +54714,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=56
 ===============================================================RNX
@@ -54854,9 +54798,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=57
 ===============================================================RNX
@@ -54939,9 +54882,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=58
 ===============================================================RNX
@@ -55024,9 +54966,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=59
 ===============================================================RNX
@@ -55109,9 +55050,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=60
 ===============================================================RNX
@@ -55194,9 +55134,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=61
 ===============================================================RNX
@@ -55279,9 +55218,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=62
 ===============================================================RNX
@@ -55364,9 +55302,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=63
 ===============================================================RNX
@@ -55825,9 +55762,8 @@ flag=1
 fit=0
 SAT=2
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=64
 ===============================================================RNX
@@ -55910,9 +55846,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=65
 ===============================================================RNX
@@ -61353,9 +61288,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=66
 ===============================================================RNX
@@ -68368,9 +68302,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=67
 ===============================================================RNX
@@ -68453,9 +68386,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=68
 ===============================================================RNX
@@ -68538,9 +68470,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=69
 ===============================================================RNX
@@ -68623,9 +68554,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=70
 ===============================================================RNX
@@ -68708,9 +68638,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=71
 ===============================================================RNX
@@ -68793,9 +68722,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=72
 ===============================================================RNX
@@ -68878,9 +68806,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=73
 ===============================================================RNX
@@ -68963,9 +68890,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=74
 ===============================================================RNX
@@ -69048,9 +68974,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=75
 ===============================================================RNX
@@ -69133,9 +69058,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=76
 ===============================================================RNX
@@ -69636,9 +69560,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=77
 ===============================================================RNX
@@ -75055,9 +74978,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=78
 ===============================================================RNX
@@ -81904,9 +81826,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=79
 ===============================================================RNX
@@ -81988,9 +81909,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=80
 ===============================================================RNX
@@ -82072,9 +81992,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=81
 ===============================================================RNX
@@ -82156,9 +82075,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=82
 ===============================================================RNX
@@ -82240,9 +82158,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=83
 ===============================================================RNX
@@ -82324,9 +82241,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=84
 ===============================================================RNX
@@ -82408,9 +82324,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=85
 ===============================================================RNX
@@ -82492,9 +82407,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=86
 ===============================================================RNX
@@ -82576,9 +82490,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=87
 ===============================================================RNX
@@ -82660,9 +82573,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=88
 ===============================================================RNX
@@ -83153,9 +83065,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=89
 ===============================================================RNX
@@ -88481,9 +88392,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=90
 ===============================================================RNX
@@ -95330,9 +95240,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=91
 ===============================================================RNX
@@ -95414,9 +95323,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=92
 ===============================================================RNX
@@ -95498,9 +95406,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=93
 ===============================================================RNX
@@ -95582,9 +95489,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=94
 ===============================================================RNX
@@ -95666,9 +95572,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=95
 ===============================================================RNX
@@ -95750,9 +95655,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=96
 ===============================================================RNX
@@ -95834,9 +95738,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=97
 ===============================================================RNX
@@ -95918,9 +95821,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=98
 ===============================================================RNX
@@ -96002,9 +95904,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=99
 ===============================================================RNX
@@ -96086,9 +95987,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=100
 ===============================================================RNX
@@ -96574,9 +96474,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=101
 ===============================================================RNX
@@ -101902,9 +101801,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=102
 ===============================================================RNX
@@ -108751,9 +108649,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=103
 ===============================================================RNX
@@ -108835,9 +108732,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=104
 ===============================================================RNX
@@ -108919,9 +108815,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=105
 ===============================================================RNX
@@ -109003,9 +108898,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=106
 ===============================================================RNX
@@ -109087,9 +108981,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=107
 ===============================================================RNX
@@ -109171,9 +109064,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=108
 ===============================================================RNX
@@ -109255,9 +109147,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=109
 ===============================================================RNX
@@ -109339,9 +109230,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=110
 ===============================================================RNX
@@ -109423,9 +109313,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=111
 ===============================================================RNX
@@ -109507,9 +109396,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=112
 ===============================================================RNX
@@ -109995,9 +109883,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=113
 ===============================================================RNX
@@ -115306,9 +115193,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=114
 ===============================================================RNX
@@ -122018,9 +121904,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=115
 ===============================================================RNX
@@ -122101,9 +121986,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=116
 ===============================================================RNX
@@ -122184,9 +122068,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=117
 ===============================================================RNX
@@ -122267,9 +122150,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=118
 ===============================================================RNX
@@ -122350,9 +122232,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=119
 ===============================================================RNX
@@ -122433,9 +122314,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=120
 ===============================================================RNX
@@ -122516,9 +122396,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=121
 ===============================================================RNX
@@ -122599,9 +122478,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=122
 ===============================================================RNX
@@ -122682,9 +122560,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=123
 ===============================================================RNX
@@ -122765,9 +122642,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=124
 ===============================================================RNX
@@ -123243,9 +123119,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=125
 ===============================================================RNX
@@ -128436,9 +128311,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=126
 ===============================================================RNX
@@ -135119,9 +134993,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=127
 ===============================================================RNX
@@ -135202,9 +135075,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-128
 ===============================================================RNX
@@ -135285,9 +135157,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-127
 ===============================================================RNX
@@ -135368,9 +135239,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-126
 ===============================================================RNX
@@ -135451,9 +135321,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-125
 ===============================================================RNX
@@ -135534,9 +135403,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-124
 ===============================================================RNX
@@ -135617,9 +135485,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-123
 ===============================================================RNX
@@ -135700,9 +135567,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-122
 ===============================================================RNX
@@ -135783,9 +135649,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-121
 ===============================================================RNX
@@ -135866,9 +135731,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-120
 ===============================================================RNX
@@ -136339,9 +136203,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-119
 ===============================================================RNX
@@ -141532,9 +141395,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-118
 ===============================================================RNX
@@ -142735,9 +142597,8 @@ flag=0
 fit=0
 SAT=11
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-117
 ===============================================================RNX
@@ -146425,9 +146286,8 @@ flag=0
 fit=0
 SAT=18
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-116
 ===============================================================RNX
@@ -148380,9 +148240,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-115
 ===============================================================RNX
@@ -148463,9 +148322,8 @@ flag=0
 fit=0
 SAT=7
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-114
 ===============================================================RNX
@@ -148546,9 +148404,8 @@ flag=0
 fit=0
 SAT=8
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-113
 ===============================================================RNX
@@ -148629,9 +148486,8 @@ flag=0
 fit=0
 SAT=9
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-112
 ===============================================================RNX
@@ -148712,9 +148568,8 @@ flag=0
 fit=0
 SAT=13
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-111
 ===============================================================RNX
@@ -148795,9 +148650,8 @@ flag=0
 fit=0
 SAT=20
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-110
 ===============================================================RNX
@@ -148878,9 +148732,8 @@ flag=0
 fit=0
 SAT=21
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-109
 ===============================================================RNX
@@ -148961,9 +148814,8 @@ flag=0
 fit=0
 SAT=27
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-108
 ===============================================================RNX
@@ -149044,9 +148896,8 @@ flag=0
 fit=0
 SAT=28
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-107
 ===============================================================RNX
@@ -149127,9 +148978,8 @@ flag=0
 fit=0
 SAT=30
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-106
 ===============================================================RNX
@@ -149596,9 +149446,8 @@ flag=1
 fit=0
 SAT=3
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-105
 ===============================================================RNX
@@ -154816,9 +154665,8 @@ flag=0
 fit=0
 SAT=15
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-104
 ===============================================================RNX
@@ -156019,9 +155867,8 @@ flag=0
 fit=0
 SAT=11
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-103
 ===============================================================RNX
@@ -159604,9 +159451,8 @@ flag=0
 fit=0
 SAT=18
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-102
 ===============================================================RNX
@@ -161512,9 +161358,8 @@ flag=0
 fit=0
 SAT=5
 WEEK=1977
-TOE=-57520
-TOC=-57520
-number of broadcast ephemeris. n=148, nmax=0
+TOE=-57648
+TOC=-57648
 !!!!`get nav message`!!!!
 raw->msgtype[19]=-101
 ===============================================================RNX

@@ -412,7 +412,7 @@ static int scan_obstype(int format, const char *file, rnxopt_t *opt,
     }
     /* scan codes in input file */
     while ((type=input_strfile(str))>=-1) {
-        
+		
         if (type!=1||str->obs->n<=0) continue;
         
         if (!opt->ts.time||timediff(str->obs->data[0].time,opt->ts)>=0.001) {
@@ -964,7 +964,7 @@ static int convrnx_s(int sess, int format, rnxopt_t *opt, const char *file,
         
         /* input message */
         for (j=0;(type=input_strfile(str))>=-1;j++) {
-            
+			printf("type v convrnx_s=%d\n", type);
             if (j%11==1&&(abort=showstat(sess,te,te,n))) break;
             
             /* avioid duplicated if overlapped data */

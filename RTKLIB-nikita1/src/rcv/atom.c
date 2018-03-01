@@ -106,7 +106,10 @@ static int nik_printf(const char *format, ...)
 	return 0;
 }
 #endif
-
+#define MAX_SATS 64
+#define MAX_SIGS 64
+#define CLIGHT      299792458.0         /* speed of light (m/s) */
+#define RANGE_MS    (CLIGHT*0.001)      /* range in 1 ms */
 #define printf nik_printf
 
 static int get_active_bits(unsigned int mask, int len)
@@ -228,12 +231,72 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	raw->ephsat = sat;
 	return 2;
 }
+/* decode type 1020: glonass ephemerides -------------------------------------*/
+static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	geph_t geph = { 0 };
+	double tk_h, tk_m, tk_s, toe, tow, tod, tof;
+	char *msg;
+	int i = k, prn, sat, week, tb, bn, sys = SYS_GLO;
 
+	if (i + 348 <= mes_len * 8) {
+		prn = getbitu(Raw, i, 6);           i += 6;
+		geph.frq = getbitu(Raw, i, 5) - 7;         i += 5 + 2 + 2;
+		tk_h = getbitu(Raw, i, 5);           i += 5;
+		tk_m = getbitu(Raw, i, 6);           i += 6;
+		tk_s = getbitu(Raw, i, 1)*30.0;      i += 1;
+		bn = getbitu(Raw, i, 1);           i += 1 + 1;
+		tb = getbitu(Raw, i, 7);           i += 7;
+		geph.vel[0] = getbitg(Raw, i, 24)*P2_20*1E3; i += 24;
+		geph.pos[0] = getbitg(Raw, i, 27)*P2_11*1E3; i += 27;
+		geph.acc[0] = getbitg(Raw, i, 5)*P2_30*1E3; i += 5;
+		geph.vel[1] = getbitg(Raw, i, 24)*P2_20*1E3; i += 24;
+		geph.pos[1] = getbitg(Raw, i, 27)*P2_11*1E3; i += 27;
+		geph.acc[1] = getbitg(Raw, i, 5)*P2_30*1E3; i += 5;
+		geph.vel[2] = getbitg(Raw, i, 24)*P2_20*1E3; i += 24;
+		geph.pos[2] = getbitg(Raw, i, 27)*P2_11*1E3; i += 27;
+		geph.acc[2] = getbitg(Raw, i, 5)*P2_30*1E3; i += 5 + 1;
+		geph.gamn = getbitg(Raw, i, 11)*P2_40;     i += 11 + 3;
+		geph.taun = getbitg(Raw, i, 22)*P2_30;
+	}
+	else {
+		/*trace(2, "rtcm3 1020 length error: len=%d\n", rtcm->len);*/
+		return -1;
+	}
+	if (!(sat = satno(sys, prn))) {
+		/*trace(2, "rtcm3 1020 satellite number error: prn=%d\n", prn);*/
+		return -1;
+	}
+	/*trace(4, "decode_type1020: prn=%d tk=%02.0f:%02.0f:%02.0f\n", prn, tk_h, tk_m, tk_s);*/
 
-#define MAX_SATS 64
-#define MAX_SIGS 64
-#define CLIGHT      299792458.0         /* speed of light (m/s) */
-#define RANGE_MS    (CLIGHT*0.001)      /* range in 1 ms */
+	/*if (rtcm->outtype) {
+		msg = rtcm->msgtype + strlen(rtcm->msgtype);
+		sprintf(msg, " prn=%2d tk=%02.0f:%02.0f:%02.0f frq=%2d bn=%d tb=%d",
+			prn, tk_h, tk_m, tk_s, geph.frq, bn, tb);
+	}*/
+	geph.sat = sat;
+	geph.svh = bn;
+	geph.iode = tb & 0x7F;
+	if (raw->time.time == 0) raw->time = utc2gpst(timeget());
+	tow = time2gpst(gpst2utc(raw->time), &week);
+	tod = fmod(tow, 86400.0); tow -= tod;
+	tof = tk_h*3600.0 + tk_m*60.0 + tk_s - 10800.0; /* lt->utc */
+	if (tof<tod - 43200.0) tof += 86400.0;
+	else if (tof>tod + 43200.0) tof -= 86400.0;
+	geph.tof = utc2gpst(gpst2time(week, tow + tof));
+	toe = tb*900.0 - 10800.0; /* lt->utc */
+	if (toe<tod - 43200.0) toe += 86400.0;
+	else if (toe>tod + 43200.0) toe -= 86400.0;
+	geph.toe = utc2gpst(gpst2time(week, tow + toe)); /* utc->gpst */
+
+	/*if (!strstr(rtcm->opt, "-EPHALL")) {*/
+		if (fabs(timediff(geph.toe, raw->nav.geph[prn - 1].toe))<1.0&&
+			geph.svh == raw->nav.geph[prn - 1].svh) return 0; /* unchanged */
+	/*}*/
+	raw->nav.geph[sat - 1] = geph;
+	raw->ephsat = sat;
+	return 2;
+}
 
 static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
@@ -705,7 +768,9 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 	switch (Standardized_message_number) {
 	case 1019:
-		ret=decode_type1019(raw, Raw, k, mes_len); break;
+		ret = decode_type1019(raw, Raw, k, mes_len); break;
+	case 1020:
+		ret = decode_type1020(raw, Raw, k, mes_len); break;
 	}
 
 	if (ret >= 0) {
@@ -767,15 +832,15 @@ start:
 	switch (mes_sub_num) {
 	case 5:
 		ret = decode_atom_nav(raw, Raw, k, mes_len);
-		if (-1 == ret)
+		if (-1 >= ret)
 			goto start;
-		type = 2;
+		type = ret;
 		break;
 	case 7:
 		ret = decode_atom_rnx(raw, Raw, k, mes_len);
-		if (-1 == ret)
+		if (-1 >= ret)
 			goto start;
-		type = 1;
+		type = ret;
 		break;
 	default: goto start;
 	}

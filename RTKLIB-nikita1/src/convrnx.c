@@ -263,6 +263,7 @@ static int input_strfile(strfile_t *str)
     }
     else if (str->format<=MAXRCVFMT) {
         if ((type=input_rawf(&str->raw,str->format,str->fp))>=1) {
+			printf("type v input_strfile=%d\n", type);
             str->time=str->raw.time;
             str->sat=str->raw.ephsat;
         }
@@ -296,7 +297,7 @@ static int open_strfile(strfile_t *str, const char *file)
         /* read head to resolve time ambiguity */
         if (str->time.time==0) {
             str->raw.flag=1;
-            while (input_strfile(str)>=-1&&str->time.time==0) ;
+			while (input_strfile(str) >= -1 && str->time.time == 0) printf("OPEN!str->time.time=%d\n", str->time.time);
             str->raw.flag=1;
             rewind(str->fp);
         }
@@ -705,6 +706,8 @@ static void convnav(FILE **ofp, rnxopt_t *opt, strfile_t *str, int *n)
     te2=opt->te; if (te2.time!=0) te2=timeadd(te2, MAXDTOE_GLO);
     
     sys=satsys(str->sat,&prn)&opt->navsys;
+	printf("sys=%x\n", sys);
+	printf("str->sat=%d\n", str->sat);
     
     if (sys==SYS_GPS) {
         if (opt->exsats[str->sat-1]==1||!screent(str->time,ts1,te1,0.0)) return;

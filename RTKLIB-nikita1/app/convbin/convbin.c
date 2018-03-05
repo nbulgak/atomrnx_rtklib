@@ -91,7 +91,7 @@ static const char *help[]={
 "                  binex= BINEX",
 "                  rt17 = Trimble RT17",
 "                  rinex= RINEX",
-"                  atom = Ashtech ATOM",
+"                  atom = ATOM",
 "     -ro opt      receiver options",
 "     -f freq      number of frequencies [2]",
 "     -hc comment  rinex header: comment line",

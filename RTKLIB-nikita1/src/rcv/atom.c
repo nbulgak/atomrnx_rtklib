@@ -112,6 +112,12 @@ static int nik_printf(const char *format, ...)
 #define RANGE_MS    (CLIGHT*0.001)      /* range in 1 ms */
 #define printf nik_printf
 
+static void outnavf(double value)
+{
+	double e = fabs(value)<1E-99 ? 0.0 : floor(log10(fabs(value)) + 1.0);
+	printf(" %s.%012.0fE%+03.0f", value<0.0 ? "-" : " ", fabs(value) / pow(10.0, e - 12.0), e);
+}
+
 static int get_active_bits(unsigned int mask, int len)
 {
 	int res;
@@ -121,6 +127,11 @@ static int get_active_bits(unsigned int mask, int len)
 	return(res);
 }
 
+static double getbitg(const unsigned char *buff, int pos, int len)
+{
+	double value = getbitu(buff, pos + 1, len - 1);
+	return getbitu(buff, pos, 1) ? -value : value;
+}
 
 /* decode type 1019: gps ephemerides -----------------------------------------*/
 static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
@@ -131,6 +142,8 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	int i = k, prn, sat, week, sys = SYS_GPS;
 	printf("offset=%d\n", k);
 	/*raw->nav.nmax = raw->nav.n;*/
+
+
 
 	if (i + 476 <= mes_len * 8) {
 		prn = getbitu(Raw, i, 6);              i += 6;
@@ -195,22 +208,23 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		printf("fit=%d\n", eph.fit);
 	}
 	else {
-		printf("Invalid message: Len_NAV\n");
+		printf("Invalid message: Len_NAV_1019\n");
 		return -1;
 	}
 	if (prn >= 40) {
-	sys = SYS_SBS; prn += 80;
+		/*sys = SYS_SBS; prn += 80;*/
+		return 0; /*udalit kogda nujen budet SBS*/
 	}
-/*	trace(4, "decode_type1019: prn=%d iode=%d toe=%.0f\n", prn, eph.iode, eph.toes);
+	/*	trace(4, "decode_type1019: prn=%d iode=%d toe=%.0f\n", prn, eph.iode, eph.toes);
 
-	if (rtcm->outtype) {
-	msg = rtcm->msgtype + strlen(rtcm->msgtype);
-	sprintf(msg, " prn=%2d iode=%3d iodc=%3d week=%d toe=%6.0f toc=%6.0f svh=%02X",
-	prn, eph.iode, eph.iodc, week, eph.toes, toc, eph.svh);
-	}
-	*/
+		if (rtcm->outtype) {
+		msg = rtcm->msgtype + strlen(rtcm->msgtype);
+		sprintf(msg, " prn=%2d iode=%3d iodc=%3d week=%d toe=%6.0f toc=%6.0f svh=%02X",
+		prn, eph.iode, eph.iodc, week, eph.toes, toc, eph.svh);
+		}
+		*/
 	if (!(sat = satno(sys, prn))) {
-	return -1;
+		return -1;
 	}
 	eph.sat = sat;
 	printf("SAT=%d\n", eph.sat);
@@ -222,13 +236,16 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	printf("TOC=%d\n", eph.toc);
 	/*eph.ttr = rtcm->time;*/
 	eph.A = sqrtA*sqrtA;
+	printf("raw->nav.eph[sat - 1].iode=%d\n", raw->nav.eph[sat - 1].iode);
 
-	if (eph.iode == raw->nav.eph[sat - 1].iode) return 0; /* unchanged */
+   	if (eph.iode == raw->nav.eph[sat - 1].iode) return 0; /* unchanged */
+
 
 	/*printf("number of broadcast ephemeris. n=%d, nmax=%d\n", raw->nav.n, raw->nav.nmax);*/
 
 	raw->nav.eph[sat - 1] = eph;
 	raw->ephsat = sat;
+	printf("SAT[%d] dobavlen\n", sat);
 	return 2;
 }
 /* decode type 1020: glonass ephemerides -------------------------------------*/
@@ -238,28 +255,48 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	double tk_h, tk_m, tk_s, toe, tow, tod, tof;
 	char *msg;
 	int i = k, prn, sat, week, tb, bn, sys = SYS_GLO;
+	printf("YA V GLO\n");
 
 	if (i + 348 <= mes_len * 8) {
 		prn = getbitu(Raw, i, 6);           i += 6;
+		outnavf(prn); printf("\n");
 		geph.frq = getbitu(Raw, i, 5) - 7;         i += 5 + 2 + 2;
+		outnavf(geph.frq); printf("\n");
 		tk_h = getbitu(Raw, i, 5);           i += 5;
+		outnavf(tk_h); printf("\n");
 		tk_m = getbitu(Raw, i, 6);           i += 6;
+		outnavf(tk_m); printf("\n");
 		tk_s = getbitu(Raw, i, 1)*30.0;      i += 1;
+		outnavf(tk_s); printf("\n");
 		bn = getbitu(Raw, i, 1);           i += 1 + 1;
+		outnavf(bn); printf("\n");
 		tb = getbitu(Raw, i, 7);           i += 7;
+		outnavf(tb); printf("\n");
 		geph.vel[0] = getbitg(Raw, i, 24)*P2_20*1E3; i += 24;
+		outnavf(geph.vel[0]); printf("\n");
 		geph.pos[0] = getbitg(Raw, i, 27)*P2_11*1E3; i += 27;
+		outnavf(geph.pos[0]); printf("\n");
 		geph.acc[0] = getbitg(Raw, i, 5)*P2_30*1E3; i += 5;
+		outnavf(geph.acc[0]); printf("\n");
 		geph.vel[1] = getbitg(Raw, i, 24)*P2_20*1E3; i += 24;
+		outnavf(geph.vel[1]); printf("\n");
 		geph.pos[1] = getbitg(Raw, i, 27)*P2_11*1E3; i += 27;
+		outnavf(geph.pos[1]); printf("\n");
 		geph.acc[1] = getbitg(Raw, i, 5)*P2_30*1E3; i += 5;
+		outnavf(geph.acc[1]); printf("\n");
 		geph.vel[2] = getbitg(Raw, i, 24)*P2_20*1E3; i += 24;
+		outnavf(geph.vel[2]); printf("\n");
 		geph.pos[2] = getbitg(Raw, i, 27)*P2_11*1E3; i += 27;
+		outnavf(geph.pos[2]); printf("\n");
 		geph.acc[2] = getbitg(Raw, i, 5)*P2_30*1E3; i += 5 + 1;
+		outnavf(geph.acc[2]); printf("\n");
 		geph.gamn = getbitg(Raw, i, 11)*P2_40;     i += 11 + 3;
+		outnavf(geph.gamn); printf("\n");
 		geph.taun = getbitg(Raw, i, 22)*P2_30;
+		outnavf(geph.taun); printf("\n");
 	}
 	else {
+		printf("Invalid message: Len_NAV_1020\n");
 		/*trace(2, "rtcm3 1020 length error: len=%d\n", rtcm->len);*/
 		return -1;
 	}
@@ -278,6 +315,7 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	geph.svh = bn;
 	geph.iode = tb & 0x7F;
 	if (raw->time.time == 0) raw->time = utc2gpst(timeget());
+	printf("raw->time.time=%d\n", raw->time.time);
 	tow = time2gpst(gpst2utc(raw->time), &week);
 	tod = fmod(tow, 86400.0); tow -= tod;
 	tof = tk_h*3600.0 + tk_m*60.0 + tk_s - 10800.0; /* lt->utc */
@@ -288,13 +326,15 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	if (toe<tod - 43200.0) toe += 86400.0;
 	else if (toe>tod + 43200.0) toe -= 86400.0;
 	geph.toe = utc2gpst(gpst2time(week, tow + toe)); /* utc->gpst */
+	printf("geph.toe=%d\n", geph.toe);
 
 	/*if (!strstr(rtcm->opt, "-EPHALL")) {*/
 		if (fabs(timediff(geph.toe, raw->nav.geph[prn - 1].toe))<1.0&&
 			geph.svh == raw->nav.geph[prn - 1].svh) return 0; /* unchanged */
 	/*}*/
-	raw->nav.geph[sat - 1] = geph;
+	raw->nav.geph[prn - 1] = geph;
 	raw->ephsat = sat;
+	printf("SAT[%d] dobavlen\n", sat);
 	return 2;
 }
 
@@ -763,8 +803,6 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 	Standardized_message_number = getbitu(Raw, k, 12); k += 12;
 	printf("Standardized message number=%d\n", Standardized_message_number);
-	if (1019 != Standardized_message_number)
-		return -1;
 
 	switch (Standardized_message_number) {
 	case 1019:
@@ -835,6 +873,7 @@ start:
 		if (-1 >= ret)
 			goto start;
 		type = ret;
+		printf("ret=%d\n", ret);
 		break;
 	case 7:
 		ret = decode_atom_rnx(raw, Raw, k, mes_len);
@@ -844,7 +883,7 @@ start:
 		break;
 	default: goto start;
 	}
-
+	printf("return %d\n", type);
 	return type;
 }
 

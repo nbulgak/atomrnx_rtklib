@@ -139,11 +139,9 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	eph_t eph = { 0 };
 	double toc, sqrtA;
 	char *msg;
-	int i = k, prn, sat, week, sys = SYS_GPS;
+	int i = k, prn, sat, week, sys = SYS_GPS, www;
+	double sec_in_week;
 	printf("offset=%d\n", k);
-	/*raw->nav.nmax = raw->nav.n;*/
-
-
 
 	if (i + 476 <= mes_len * 8) {
 		prn = getbitu(Raw, i, 6);              i += 6;
@@ -229,14 +227,14 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	eph.sat = sat;
 	printf("SAT=%d\n", eph.sat);
 	eph.week = adjgpsweek(week);
+
+    sec_in_week = time2gpst(raw->time, &www);
+	raw->time = gpst2time(eph.week, sec_in_week);
+
 	printf("WEEK=%d\n", eph.week);
 	eph.toe = gpst2time(eph.week, eph.toes);
-	printf("TOE=%d\n", eph.toe);
 	eph.toc = gpst2time(eph.week, toc);
-	printf("TOC=%d\n", eph.toc);
-	/*eph.ttr = rtcm->time;*/
 	eph.A = sqrtA*sqrtA;
-	printf("raw->nav.eph[sat - 1].iode=%d\n", raw->nav.eph[sat - 1].iode);
 
    	if (eph.iode == raw->nav.eph[sat - 1].iode) return 0; /* unchanged */
 
@@ -253,9 +251,8 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	geph_t geph = { 0 };
 	double tk_h, tk_m, tk_s, toe, tow, tod, tof;
-	char *msg;
+	char *msg, s[64];
 	int i = k, prn, sat, week, tb, bn, sys = SYS_GLO;
-	printf("YA V GLO\n");
 
 	if (i + 348 <= mes_len * 8) {
 		prn = getbitu(Raw, i, 6);           i += 6;
@@ -314,9 +311,9 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	geph.sat = sat;
 	geph.svh = bn;
 	geph.iode = tb & 0x7F;
-	if (raw->time.time == 0) raw->time = utc2gpst(timeget());
-	printf("raw->time.time=%d\n", raw->time.time);
-	tow = time2gpst(gpst2utc(raw->time), &week);
+	/*if (raw->time.time == 0) { printf("ya v raw->time.time == 0\n"); raw->time = utc2gpst(timeget()); }*/
+	tow = time2gpst(raw->time, &week);
+	printf("week=%d\n", week);
 	tod = fmod(tow, 86400.0); tow -= tod;
 	tof = tk_h*3600.0 + tk_m*60.0 + tk_s - 10800.0; /* lt->utc */
 	if (tof<tod - 43200.0) tof += 86400.0;
@@ -326,7 +323,6 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	if (toe<tod - 43200.0) toe += 86400.0;
 	else if (toe>tod + 43200.0) toe -= 86400.0;
 	geph.toe = utc2gpst(gpst2time(week, tow + toe)); /* utc->gpst */
-	printf("geph.toe=%d\n", geph.toe);
 
 	/*if (!strstr(rtcm->opt, "-EPHALL")) {*/
 		if (fabs(timediff(geph.toe, raw->nav.geph[prn - 1].toe))<1.0&&
@@ -341,7 +337,7 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	extern const char *msm_sig_gps[32];
-	int i, j, l, m;
+	int i, j, l, m, week;
 	double FinePseudoPhase;
 	int Doppler[MAX_SATS], FineDoppler[MAX_SATS][MAX_SIGS];
 	unsigned int GNSSmask, version, ref_st_ID, multiple, IODS, smoothing, position_presentation, primary_GNSS_system,
@@ -717,14 +713,14 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	int n, prn, s, freq[32], ind[32];
 	unsigned char code[32];
 
-
+	time2gpst(raw->time, &week); /*calculating week*/
 	if (time_tag_extension_type == 0)
 	{
-		raw->time = gpst2time(0, (day*86400.) + (hour*3600.) + primary_time_tag);
+		raw->time = gpst2time(week, (day*86400.) + (hour*3600.) + primary_time_tag);
 	}
 	else
 	{
-		raw->time = gpst2time(0, primary_time_tag);
+		raw->time = gpst2time(week, primary_time_tag);
 	}
 	/* RTKlib fields filling*/
 	for (i = n = 0; i< sat_cnt; i++)
@@ -801,8 +797,12 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	NAV_message_type = getbitu(Raw, k, 9); k += 9;
 	printf("NAV message type=%d\n", NAV_message_type);
 
+	if ((NAV_message_type <= 0) || (NAV_message_type >= 3)) /*GPS and GLO eph only*/
+		return ret;
+
 	Standardized_message_number = getbitu(Raw, k, 12); k += 12;
 	printf("Standardized message number=%d\n", Standardized_message_number);
+
 
 	switch (Standardized_message_number) {
 	case 1019:

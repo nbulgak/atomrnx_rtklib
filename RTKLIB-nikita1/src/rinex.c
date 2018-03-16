@@ -2211,7 +2211,6 @@ extern int outrnxnavb(FILE *fp, const rnxopt_t *opt, const eph_t *eph)
     char code[32],*sep;
     
     trace(3,"outrnxgnavb: sat=%2d\n",eph->sat);
-	printf("ya v outrnxnavb!\n");
     
     if (!(sys=satsys(eph->sat,&prn))||!(sys&opt->navsys)) return 0;
     
@@ -2349,16 +2348,14 @@ extern int outrnxgnavb(FILE *fp, const rnxopt_t *opt, const geph_t *geph)
     double ep[6],tof;
     int prn;
     char code[32],*sep;
-	printf("ya v outrnxgnavb(vivod GLO)\n");
     trace(3,"outrnxgnavb: sat=%2d\n",geph->sat);
 
 	if ((satsys(geph->sat, &prn)&opt->navsys) != SYS_GLO) return 0;
     
     tof=time2gpst(gpst2utc(geph->tof),NULL);      /* v.3: tow in utc */
     if (opt->rnxver<=2.99) tof=fmod(tof,86400.0); /* v.2: tod in utc */
-    
+
     toe=gpst2utc(geph->toe); /* gpst -> utc */
-	printf("toe=%d\n", toe);
     time2epoch(toe,ep);
     
     if (opt->rnxver<=2.99) { /* ver.2 */
@@ -2367,7 +2364,6 @@ extern int outrnxgnavb(FILE *fp, const rnxopt_t *opt, const geph_t *geph)
         sep="   ";
     }
     else { /* ver.3 */
-		printf("pristupau k vivodu GLO\n");
         if (!sat2code(geph->sat,code)) return 0;
         fprintf(fp,"%-3s %04.0f %2.0f %2.0f %2.0f %2.0f %2.0f",code,ep[0],ep[1],
                 ep[2],ep[3],ep[4],ep[5]);

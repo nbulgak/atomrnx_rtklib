@@ -1508,7 +1508,7 @@ extern double utc2gmst(gtime_t t, double ut1_utc)
 extern void time2str(gtime_t t, char *s, int n)
 {
     double ep[6];
-    
+
     if (n<0) n=0; else if (n>12) n=12;
     if (1.0-t.sec<0.5/pow(10.0,n)) {t.time++; t.sec=0.0;};
     time2epoch(t,ep);

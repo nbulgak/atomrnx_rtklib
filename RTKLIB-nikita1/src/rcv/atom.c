@@ -336,7 +336,8 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
-	extern const char *msm_sig_gps[32];
+	extern const char *msm_sig_gps[32], *msm_sig_glo[32];
+	char www[64];
 	int i, j, l, m, week;
 	double FinePseudoPhase;
 	int Doppler[MAX_SATS], FineDoppler[MAX_SATS][MAX_SIGS];
@@ -377,9 +378,15 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	printf("Position presentation=%d\n", position_presentation);
 
 	GNSSmask = getbitu(Raw, k, 8); k += 8;
-	printf("GNSS mask=%x\n", GNSSmask);
-	if (GNSSmask != 1)
-		printf("GNSSmask!=1\n");
+	printf("GNSS mask=");
+	for (j = 1; j < 129;j*=2)
+	    printf("%d", !(!(GNSSmask&j)) );
+	printf("\n");
+	if (0 == GNSSmask)
+	{
+		printf("no info message\n");
+		return 1;
+	}
 
 	primary_GNSS_system = getbitu(Raw, k, 3); k += 3;
 	printf("Primary GNSS system=%d\n", primary_GNSS_system);
@@ -449,7 +456,6 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		printf("Invalid message: Data Id follow\n");
 		return -1;
 	}
-
 	if (version == 2)
 	{
 		if (k + 96 > mes_len * 8)
@@ -713,6 +719,8 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	int n, prn, s, freq[32], ind[32];
 	unsigned char code[32];
 
+	time2str(raw->time, www, 0);
+	printf("TIME_before=%s\n", www);
 	time2gpst(raw->time, &week); /*calculating week*/
 	if (time_tag_extension_type == 0)
 	{
@@ -722,60 +730,126 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	{
 		raw->time = gpst2time(week, primary_time_tag);
 	}
+	time2str(raw->time, www, 0);
+	printf("TIME_after=%s\n", www);
+
 	/* RTKlib fields filling*/
-	for (i = n = 0; i< sat_cnt; i++)
+	if (128 == GNSSmask)/*GPS*/
 	{
-		unsigned int si = sat[i];
-		const char* sig_obs[32];
-		int index;
-		double tt;
-
-		for (m = 0; m < sig_cnt; m++)
+		printf("----------!!!GPS obs message!!!\n");
+		for (i = n = 0; i < sat_cnt; i++)
 		{
-			sig_obs[m] = msm_sig_gps[sig[m]];
-			code[m] = obs2code(sig_obs[m], freq + m);
-		}
-		sigindex(SYS_GPS, code, freq, sig_cnt, 0, ind);
+			unsigned int si = sat[i];
+			const char* sig_obs[32];
+			int index;
+			double tt;
 
-		prn = si + 1; /* sdvigaem schetchik na 1 */
-
-		if ((s = satno(SYS_GPS, prn))) {
-			tt = timediff(raw->obs.data[0].time, raw->time);
-			if (fabs(tt)>1E-9) {
-				raw->obs.n = 0;
-			}
-			index = obsindex(&raw->obs, raw->time, s);
-		}
-
-
-		for (j = 0; j < sat_sig_cnt[si] && j < NFREQ + NEXOBS; j++)
-			/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
-		{
-			int ss = sig_type[si][j];
-			double wl = satwavelen(sat, freq[j] - 1, NULL);
-			if (s&&index >= 0 && ind[j] >= 0)
+			for (m = 0; m < sig_cnt; m++)
 			{
-				raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[si][ss];
-				raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[si])*RANGE_MS / 1024., 655.36, FinePseudoRange[si][ss] * 0.02);
-				if (wl > 0.0)
-				{
-					FinePseudoPhase = (double)(FracCycPhase[si][ss] / (256.) + IntCycPhase[si][ss]);
-					raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[si] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
-				}
-				if (wl > 0.0)
-				{
-					raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss] * 0.0001) / wl;
-				}
-				raw->obs.data[index].SNR[ind[j]] = SNR[si][ss] / 0.25;
-				raw->obs.data[index].code[ind[j]] = code[j];
+				/* signal to rinex obs type */
+				sig_obs[m] = msm_sig_gps[sig[m]];
+				code[m] = obs2code(sig_obs[m], freq + m);
 			}
-			n++;
+			sigindex(SYS_GPS, code, freq, sig_cnt, 0, ind);
+
+			prn = si + 1; /* sdvigaem schetchik na 1 */
+
+			if ((s = satno(SYS_GPS, prn))) {
+				tt = timediff(raw->obs.data[0].time, raw->time);
+				if (fabs(tt) > 1E-9) {
+					raw->obs.n = 0;
+				}
+				index = obsindex(&raw->obs, raw->time, s);
+			}
+
+
+			for (j = 0; j < sat_sig_cnt[si] && j < NFREQ + NEXOBS; j++)
+				/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
+			{
+				int ss = sig_type[si][j];
+				double wl = satwavelen(sat, freq[j] - 1, NULL);
+				if (s&&index >= 0 && ind[j] >= 0)
+				{
+					raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[si][ss];
+					raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[si])*RANGE_MS / 1024., 655.36, FinePseudoRange[si][ss] * 0.02);
+					if (wl > 0.0)
+					{
+						FinePseudoPhase = (double)(FracCycPhase[si][ss] / (256.) + IntCycPhase[si][ss]);
+						raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[si] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
+					}
+					if (wl > 0.0)
+					{
+						raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss] * 0.0001) / wl;
+					}
+					raw->obs.data[index].SNR[ind[j]] = SNR[si][ss] / 0.25;
+					raw->obs.data[index].code[ind[j]] = code[j];
+				}
+				n++;
+			}
+			printf("sat %d added\n", s);
 		}
-
-		printf("sat %d added\n", s);
-
 	}
-	return 1;
+	else if (32 == GNSSmask) /*GLO*/
+	{
+		printf("----------!!!GLO obs message!!!\n");
+		for (i = n = 0; i < sat_cnt; i++)
+		{
+			unsigned int si = sat[i];
+			const char* sig_obs[32];
+			int index;
+			double tt;
+
+			for (m = 0; m < sig_cnt; m++)
+			{
+				/* signal to rinex obs type */
+				sig_obs[m] = msm_sig_glo[sig[m]];
+				code[m] = obs2code(sig_obs[m], freq + m);
+			}
+			sigindex(SYS_GLO, code, freq, sig_cnt, 0, ind);
+
+			prn = si + 1; /* sdvigaem schetchik na 1 */
+
+			if ((s = satno(SYS_GLO, prn))) {
+				tt = timediff(raw->obs.data[0].time, raw->time);
+				if (fabs(tt) > 1E-9) {
+					raw->obs.n = 0;
+				}
+				index = obsindex(&raw->obs, raw->time, s);
+			}
+
+
+			for (j = 0; j < sat_sig_cnt[si] && j < NFREQ + NEXOBS; j++)
+				/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
+			{
+				int ss = sig_type[si][j];
+				double wl = satwavelen(sat, freq[j] - 1, NULL);
+				if (s&&index >= 0 && ind[j] >= 0)
+				{
+					raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[si][ss];
+					raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[si])*RANGE_MS / 1024., 655.36, FinePseudoRange[si][ss] * 0.02);
+					if (wl > 0.0)
+					{
+						FinePseudoPhase = (double)(FracCycPhase[si][ss] / (256.) + IntCycPhase[si][ss]);
+						raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[si] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
+					}
+					if (wl > 0.0)
+					{
+						raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss] * 0.0001) / wl;
+					}
+					raw->obs.data[index].SNR[ind[j]] = SNR[si][ss] / 0.25;
+					raw->obs.data[index].code[ind[j]] = code[j];
+				}
+				n++;
+			}
+			printf("sat %d added\n", s);
+		}
+	}
+	/*printf("n=%d, nmax=%d\n", raw->obs.n, raw->obs.nmax);*/
+
+	if (multiple)
+		return 0;
+	else
+		return 1;
 }
 
 static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)

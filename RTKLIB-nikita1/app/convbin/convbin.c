@@ -166,6 +166,7 @@ static int convbin(int format, rnxopt_t *opt, const char *ifile, char **file,
     char *extnav=opt->rnxver<=2.99||opt->navsys==SYS_GPS?"N":"P";
     char *extlog=format==STRFMT_LEXR?"lex":"sbs";
     
+    memset(ofile_, 0, sizeof(ofile_));
     def=!file[0]&&!file[1]&&!file[2]&&!file[3]&&!file[4]&&!file[5]&&!file[6];
     
     for (i=0;i<7;i++) ofile[i]=ofile_[i];

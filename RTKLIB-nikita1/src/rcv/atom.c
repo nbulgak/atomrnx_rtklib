@@ -1115,11 +1115,6 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 				printf("Receiver_time_status=%d\n", Receiver_time_status);
 
 			}
-			/*else
-			{
-				Clarification_data = getbitu(Raw, k, 22); k += 22;
-				printf("Clarification_data=%d\n", Clarification_data);
-			}*/
 
 			if (2 < position_presentation)
 			{
@@ -1149,8 +1144,6 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 			}
 		}
 	}
-
-
 
 	if (multiple)
 		return 0;
@@ -1219,7 +1212,6 @@ int input_atomf(raw_t *raw, FILE *f)
 	unsigned int mes_len, mes_num;
 	unsigned int mes_sub_num;
 
-start:
 	k = 0;
 	type = -1; ret = 0;
 
@@ -1241,7 +1233,7 @@ start:
 	if (crc24q(Raw, mes_len) != getbitu(Raw, (mes_len)* 8, 24))
 	{
 		fseek(f, -mes_len - 2, SEEK_CUR);
-		goto start;
+		return input_atomf(raw, f);
 	}
 
 	k = 24;
@@ -1250,7 +1242,7 @@ start:
 	if (mes_num != 4095)
 	{
 		printf("ne4095\n");
-		goto start;
+		return input_atomf(raw, f);
 	}
 
 	mes_sub_num = getbitu(Raw, k, 4); k += 4;
@@ -1261,17 +1253,21 @@ start:
 	case 5:
 		ret = decode_atom_nav(raw, Raw, k, mes_len);
 		if (-1 >= ret)
-			goto start;
+		{
+			return input_atomf(raw, f);
+		}
 		type = ret;
 		printf("ret=%d\n", ret);
 		break;
 	case 7:
 		ret = decode_atom_rnx(raw, Raw, k, mes_len);
 		if (-1 >= ret)
-			goto start;
+		{
+			return input_atomf(raw, f);
+		}
 		type = ret;
 		break;
-	default: goto start;
+	default: return input_atomf(raw, f);
 	}
 	printf("return %d\n", type);
 	return type;

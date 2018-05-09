@@ -3161,7 +3161,6 @@ extern double satwavelen(int sat, int frq, const nav_t *nav)
     const double freq_glo[]={FREQ1_GLO,FREQ2_GLO,FREQ3_GLO};
     const double dfrq_glo[]={DFRQ1_GLO,DFRQ2_GLO,0.0};
     int i,sys=satsys(sat,NULL);
-    
     if (sys==SYS_GLO) {
         if (0<=frq&&frq<=2) {
             for (i=0;i<nav->ng;i++) {

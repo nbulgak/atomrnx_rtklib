@@ -183,6 +183,51 @@ static void rtcm2opt(const rtcm_t *rtcm, rnxopt_t *opt)
         opt->antdel[0]=0.0;
     }
 }
+/* set ATOM antenna and receiver info to options ------------------------------------------------------*/
+static void raw2opt(const raw_t *raw, rnxopt_t *opt)
+{
+	double pos[3], enu[3];
+	int i;
+
+	/* receiver and antenna info */
+	if (!*opt->rec[0] && !*opt->rec[1] && !*opt->rec[2]) {
+		strcpy(opt->rec[0], raw->sta.recsno);
+		strcpy(opt->rec[1], raw->sta.rectype);
+		strcpy(opt->rec[2], raw->sta.recver);
+	}
+	if (!*opt->ant[0] && !*opt->ant[1] && !*opt->ant[2]) {
+		strcpy(opt->ant[0], raw->sta.antsno);
+		strcpy(opt->ant[1], raw->sta.antdes);
+		if (raw->sta.antsetup) {
+			sprintf(opt->ant[2], "%d", raw->sta.antsetup);
+		}
+		else *opt->ant[2] = '\0';
+	}
+	/* antenna approx position */
+	if (!opt->autopos&&norm(raw->sta.pos, 3)>0.0) {
+		for (i = 0; i<3; i++) opt->apppos[i] = raw->sta.pos[i];
+	}
+	/* antenna delta */
+	if (norm(raw->sta.del, 3)>0.0) {
+		if (!raw->sta.deltype&&norm(raw->sta.del, 3)>0.0) { /* enu */
+			opt->antdel[0] = raw->sta.del[2]; /* h */
+			opt->antdel[1] = raw->sta.del[0]; /* e */
+			opt->antdel[2] = raw->sta.del[1]; /* n */
+		}
+		else if (norm(raw->sta.pos, 3)>0.0) { /* xyz */
+			ecef2pos(raw->sta.pos, pos);
+			ecef2enu(pos, raw->sta.del, enu);
+			opt->antdel[0] = enu[2]; /* h */
+			opt->antdel[1] = enu[0]; /* e */
+			opt->antdel[2] = enu[1]; /* n */
+		}
+	}
+	else {
+		opt->antdel[0] = raw->sta.hgt;
+		opt->antdel[0] = 0.0;
+		opt->antdel[0] = 0.0;
+	}
+}
 /* generate stream file ------------------------------------------------------*/
 static strfile_t *gen_strfile(int format, const char *opt, gtime_t time)
 {
@@ -359,20 +404,19 @@ static void setopt_obstype(const unsigned char *codes,
     
     if (!(navsys[sys]&opt->navsys)) return;
     
-    for (i=0;codes[i];i++) {     
+    for (i=0;codes[i];i++) { 
         if (!(id=code2obs(codes[i],&freq))) continue;
-        
         if (!(opt->freqtype&(1<<(freq-1)))||opt->mask[sys][codes[i]-1]=='0') {
             continue;
         }
         for (j=0;j<4;j++) {
 			if (!(opt->obstype&(1<<j))) continue;
 			if (types&&!(types[i]&(1<<j))) continue;
-            
+
             /* observation type in ver.3 */
             sprintf(type,"%c%s",type_str[j],id);
             if (type[0]=='C'&&type[2]=='N') continue; /* codeless */
-            
+
             if (opt->rnxver<=2.99) { /* ver.2 */
                 
                 /* ver.3 -> ver.2 */
@@ -391,6 +435,7 @@ static void setopt_obstype(const unsigned char *codes,
             }
         }
     }
+
 }
 /* scan observation types ----------------------------------------------------*/
 static int scan_obstype(int format, const char *file, rnxopt_t *opt,
@@ -468,6 +513,7 @@ static int scan_obstype(int format, const char *file, rnxopt_t *opt,
         sort_codes(codes[i],types[i],n[i]);
         
         /* set observation types in rinex option */
+
         setopt_obstype(codes[i],types[i],i,opt);
         
         for (j=0;j<n[i];j++) {
@@ -541,16 +587,17 @@ static void set_obstype(int format, rnxopt_t *opt)
     };
 
     /* supported codes by atom */
+	
     const unsigned char codes_atom[6][32]={
         {CODE_L1C,CODE_L1P,CODE_L1W,CODE_L2C,CODE_L2P,CODE_L2W,CODE_L2S,CODE_L2L,
 		 CODE_L2X,CODE_L5I,CODE_L5Q,CODE_L5X,CODE_L1S,CODE_L1L,CODE_L1X},/*GPS*/
+		{ CODE_L1C, CODE_L1P, CODE_L2C, CODE_L2P, CODE_L3I, CODE_L3Q, CODE_L3X },/*GLO*/
+		{ CODE_L1C, CODE_L1A, CODE_L1B, CODE_L1X, CODE_L1Z, CODE_L6C, CODE_L6A, CODE_L6B,
+		CODE_L6X, CODE_L6Z, CODE_L7I, CODE_L7Q, CODE_L7X, CODE_L8I, CODE_L8Q, CODE_L8X,
+		CODE_L5I, CODE_L5Q, CODE_L5X },/*GAL*/
+		{ CODE_L1C, CODE_L1Z, CODE_L6S, CODE_L6L, CODE_L6X, CODE_L2S, CODE_L2L, CODE_L2X,
+		CODE_L5I, CODE_L5Q, CODE_L5X, CODE_L1S, CODE_L1L, CODE_L1X },/*QZSS*/
 		{CODE_L1C,CODE_L5I,CODE_L5Q,CODE_L5X},/*SBS*/
-		{CODE_L1C,CODE_L1P,CODE_L2C,CODE_L2P,CODE_L3I,CODE_L3Q,CODE_L3X},/*GLO*/
-		{CODE_L1C,CODE_L1A,CODE_L1B,CODE_L1X,CODE_L1Z,CODE_L6C,CODE_L6A,CODE_L6B,
-		 CODE_L6X,CODE_L6Z,CODE_L7I,CODE_L7Q,CODE_L7X,CODE_L8I,CODE_L8Q,CODE_L8X,
-		 CODE_L5I,CODE_L5Q,CODE_L5X},/*GAL*/
-        {CODE_L1C,CODE_L1Z,CODE_L6S,CODE_L6L,CODE_L6X,CODE_L2S,CODE_L2L,CODE_L2X,
-		 CODE_L5I,CODE_L5Q,CODE_L5X,CODE_L1S,CODE_L1L,CODE_L1X},/*QZSS*/
 	    {CODE_L1I,CODE_L1Q,CODE_L1X,CODE_L6I,CODE_L6Q,CODE_L6X,CODE_L7I,CODE_L7Q,
 		 CODE_L7X}/*BeiDou*/
     };
@@ -575,10 +622,11 @@ static void set_obstype(int format, rnxopt_t *opt)
             case STRFMT_BINEX: codes=codes_rinex[i]; break;
             case STRFMT_RT17 : codes=codes_rt17 [i]; break;
             case STRFMT_RINEX: codes=codes_rinex[i]; break;
-			case STRFMT_ATOM:  codes=codes_atom[i];  break;
+			case STRFMT_ATOM:  codes=codes_atom [i]; break;
             default:           codes=codes_other[i]; break;
         }
         /* set observation types in rinex option */
+
         setopt_obstype(codes,NULL,i,opt);
     }
 }
@@ -927,8 +975,7 @@ static int convrnx_s(int sess, int format, rnxopt_t *opt, const char *file,
     if (format==STRFMT_RTCM2||format==STRFMT_RTCM3||format==STRFMT_RT17) {
         time=opt->trtcm;
     }
-    if (opt->scanobs) {
-        
+    if (opt->scanobs) {     
         /* scan observation types */
         if (!scan_obstype(format,epath[0],opt,&time)) return 0;
     }
@@ -998,6 +1045,10 @@ static int convrnx_s(int sess, int format, rnxopt_t *opt, const char *file,
     else if (format==STRFMT_RINEX) {
         rnx2opt(&str->rnx,opt);
     }
+	else if (format==STRFMT_ATOM)
+	{
+		raw2opt(&str->raw, opt);
+	}
     /* close output files */
     closefile(ofp,opt,str->nav);
     

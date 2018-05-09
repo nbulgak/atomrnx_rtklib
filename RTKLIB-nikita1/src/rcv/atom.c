@@ -2,6 +2,20 @@
 #include <stdarg.h>
 #include "rtklib.h"
 
+#define P2_10       0.0009765625          /* 2^-10 */
+#define P2_34       5.820766091346740E-11 /* 2^-34 */
+#define P2_46       1.421085471520200E-14 /* 2^-46 */
+#define P2_59       1.734723475976810E-18 /* 2^-59 */
+
+/* adjust weekly rollover of bdt time ----------------------------------------*/
+static int adjbdtweek(int week)
+{
+	int w;
+	(void)time2bdt(gpst2bdt(utc2gpst(timeget())), &w);
+	if (w<1) w = 1; /* use 2006/1/1 if time is earlier than 2006/1/1 */
+	return week + (w - week + 512) / 1024 * 1024;
+}
+
 double RestorePValue(double Reference, double Ambiguity, double Modulo)
 {
 
@@ -90,7 +104,7 @@ static int nik_printf(const char *format, ...)
 	va_end(args);
 
 	if (!nik_log)
-		nik_log = fopen("nik_log.txt", "wt");
+		nik_log = fopen("nik_log.nik", "wt");
 
 	if (nik_log)
 	{
@@ -133,8 +147,14 @@ static double getbitg(const unsigned char *buff, int pos, int len)
 	return getbitu(buff, pos, 1) ? -value : value;
 }
 
-/* decode type 1019: gps ephemerides -----------------------------------------*/
-static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+/* get signed 38bit field ----------------------------------------------------*/
+static double getbits_38(const unsigned char *buff, int pos)
+{
+	return (double)getbits(buff, pos, 32)*64.0 + getbitu(buff, pos + 32, 6);
+}
+
+/* decode GPS ephemerides -----------------------------------------*/
+static int decode_GPS_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	eph_t eph = { 0 };
 	double toc, sqrtA;
@@ -209,18 +229,7 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		printf("Invalid message: Len_NAV_1019\n");
 		return -1;
 	}
-	if (prn >= 40) {
-		/*sys = SYS_SBS; prn += 80;*/
-		return 0; /*udalit kogda nujen budet SBS*/
-	}
-	/*	trace(4, "decode_type1019: prn=%d iode=%d toe=%.0f\n", prn, eph.iode, eph.toes);
 
-		if (rtcm->outtype) {
-		msg = rtcm->msgtype + strlen(rtcm->msgtype);
-		sprintf(msg, " prn=%2d iode=%3d iodc=%3d week=%d toe=%6.0f toc=%6.0f svh=%02X",
-		prn, eph.iode, eph.iodc, week, eph.toes, toc, eph.svh);
-		}
-		*/
 	if (!(sat = satno(sys, prn))) {
 		return -1;
 	}
@@ -246,8 +255,9 @@ static int decode_type1019(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	printf("SAT[%d] dobavlen\n", sat);
 	return 2;
 }
-/* decode type 1020: glonass ephemerides -------------------------------------*/
-static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+
+/* decode GLO ephemerides -------------------------------------*/
+static int decode_GLO_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	geph_t geph = { 0 };
 	double tk_h, tk_m, tk_s, toe, tow, tod, tof;
@@ -301,13 +311,7 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		/*trace(2, "rtcm3 1020 satellite number error: prn=%d\n", prn);*/
 		return -1;
 	}
-	/*trace(4, "decode_type1020: prn=%d tk=%02.0f:%02.0f:%02.0f\n", prn, tk_h, tk_m, tk_s);*/
 
-	/*if (rtcm->outtype) {
-		msg = rtcm->msgtype + strlen(rtcm->msgtype);
-		sprintf(msg, " prn=%2d tk=%02.0f:%02.0f:%02.0f frq=%2d bn=%d tb=%d",
-			prn, tk_h, tk_m, tk_s, geph.frq, bn, tb);
-	}*/
 	geph.sat = sat;
 	geph.svh = bn;
 	geph.iode = tb & 0x7F;
@@ -334,12 +338,209 @@ static int decode_type1020(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	return 2;
 }
 
+/* decode SBAS ephemerides -----------------------------------------*/
+static int decode_SBAS_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	return 2;
+}
+
+/* decode GAL ephemerides -----------------------------------------*/
+static int decode_GAL_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	eph_t eph = { 0 };
+	double toc, sqrtA;
+	char *msg;
+	int i = k, prn, sat, week, e5a_hs, e5a_dvs, rsv, sys = SYS_GAL;
+
+	if (i + 484 <= mes_len * 8) {
+		prn = getbitu(Raw, i, 6);              i += 6;
+		week = getbitu(Raw, i, 12);              i += 12;
+		eph.iode = getbitu(Raw, i, 10);              i += 10;
+		eph.sva = getbitu(Raw, i, 8);              i += 8;
+		eph.idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
+		toc = getbitu(Raw, i, 14)*60.0;         i += 14;
+		eph.f2 = getbits(Raw, i, 6)*P2_59;        i += 6;
+		eph.f1 = getbits(Raw, i, 21)*P2_46;        i += 21;
+		eph.f0 = getbits(Raw, i, 31)*P2_34;        i += 31;
+		eph.crs = getbits(Raw, i, 16)*P2_5;         i += 16;
+		eph.deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
+		eph.M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.cuc = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.e = getbitu(Raw, i, 32)*P2_33;        i += 32;
+		eph.cus = getbits(Raw, i, 16)*P2_29;        i += 16;
+		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
+		eph.toes = getbitu(Raw, i, 14)*60.0;         i += 14;
+		eph.cic = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.cis = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.crc = getbits(Raw, i, 16)*P2_5;         i += 16;
+		eph.omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
+		eph.tgd[0] = getbits(Raw, i, 10)*P2_32;        i += 10; /* E5a/E1 */
+		e5a_hs = getbitu(Raw, i, 2);              i += 2; /* OSHS */
+		e5a_dvs = getbitu(Raw, i, 1);              i += 1; /* OSDVS */
+		rsv = getbitu(Raw, i, 7);
+	}
+	else {
+
+		return -1;
+	}
+
+	
+	if (!(sat = satno(sys, prn))) {
+		trace(2, "rtcm3 1045 satellite number error: prn=%d\n", prn);
+		return -1;
+	}
+	eph.sat = sat;
+	eph.week = adjgpsweek(week % 1024);
+	eph.toe = gpst2time(eph.week, eph.toes);
+	eph.toc = gpst2time(eph.week, toc);
+	eph.ttr = raw->time;
+	eph.A = sqrtA*sqrtA;
+	eph.svh = (e5a_hs << 4) + (e5a_dvs << 3);
+	eph.code = 2; /* data source = f/nav e5a */
+
+	raw->nav.eph[sat - 1] = eph;
+	raw->ephsat = sat;
+	return 2;
+}
+
+/* decode QZSS ephemerides -----------------------------------------*/
+static int decode_QZSS_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	eph_t eph = { 0 };
+	double toc, sqrtA;
+	char *msg;
+	int i = k, prn, sat, week, sys = SYS_QZS;
+
+	if (i + 473 <= mes_len * 8) {
+		prn = getbitu(Raw, i, 4) + 192;          i += 4;
+		toc = getbitu(Raw, i, 16)*16.0;         i += 16;
+		eph.f2 = getbits(Raw, i, 8)*P2_55;        i += 8;
+		eph.f1 = getbits(Raw, i, 16)*P2_43;        i += 16;
+		eph.f0 = getbits(Raw, i, 22)*P2_31;        i += 22;
+		eph.iode = getbitu(Raw, i, 8);              i += 8;
+		eph.crs = getbits(Raw, i, 16)*P2_5;         i += 16;
+		eph.deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
+		eph.M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.cuc = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.e = getbitu(Raw, i, 32)*P2_33;        i += 32;
+		eph.cus = getbits(Raw, i, 16)*P2_29;        i += 16;
+		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
+		eph.toes = getbitu(Raw, i, 16)*16.0;         i += 16;
+		eph.cic = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.cis = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.crc = getbits(Raw, i, 16)*P2_5;         i += 16;
+		eph.omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
+		eph.idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
+		eph.code = getbitu(Raw, i, 2);              i += 2;
+		week = getbitu(Raw, i, 10);              i += 10;
+		eph.sva = getbitu(Raw, i, 4);              i += 4;
+		eph.svh = getbitu(Raw, i, 6);              i += 6;
+		eph.tgd[0] = getbits(Raw, i, 8)*P2_31;        i += 8;
+		eph.iodc = getbitu(Raw, i, 10);              i += 10;
+		eph.fit = getbitu(Raw, i, 1) ? 0.0 : 2.0; /* 0:2hr,1:>2hr */
+	}
+	else {
+
+		return -1;
+	}
+
+	if (!(sat = satno(sys, prn))) {
+		trace(2, "rtcm3 1044 satellite number error: prn=%d\n", prn);
+		return -1;
+	}
+	eph.sat = sat;
+	eph.week = adjgpsweek(week);
+	eph.toe = gpst2time(eph.week, eph.toes);
+	eph.toc = gpst2time(eph.week, toc);
+	eph.ttr = raw->time;
+	eph.A = sqrtA*sqrtA;
+
+		if (eph.iode == raw->nav.eph[sat - 1].iode&&
+			eph.iodc == raw->nav.eph[sat - 1].iodc) return 0; /* unchanged */
+
+	raw->nav.eph[sat - 1] = eph;
+	raw->ephsat = sat;
+	return 2;
+}
+
+/* decode BeiDou ephemerides -----------------------------------------*/
+static int decode_BeiDou_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	eph_t eph = { 0 };
+	double toc, sqrtA;
+	char *msg;
+	int i = k, prn, sat, week, sys = SYS_CMP;
+
+	if (i + 476 <= mes_len * 8) {
+		prn = getbitu(Raw, i, 6);              i += 6;
+		week = getbitu(Raw, i, 10);              i += 10;
+		eph.sva = getbitu(Raw, i, 4);              i += 4;
+		eph.code = getbitu(Raw, i, 2);              i += 2;
+		eph.idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
+		eph.iode = getbitu(Raw, i, 8);              i += 8;
+		toc = getbitu(Raw, i, 16)*16.0;         i += 16;
+		eph.f2 = getbits(Raw, i, 8)*P2_55;        i += 8;
+		eph.f1 = getbits(Raw, i, 16)*P2_43;        i += 16;
+		eph.f0 = getbits(Raw, i, 22)*P2_31;        i += 22;
+		eph.iodc = getbitu(Raw, i, 10);              i += 10;
+		eph.crs = getbits(Raw, i, 16)*P2_5;         i += 16;
+		eph.deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
+		eph.M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.cuc = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.e = getbitu(Raw, i, 32)*P2_33;        i += 32;
+		eph.cus = getbits(Raw, i, 16)*P2_29;        i += 16;
+		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
+		eph.toes = getbitu(Raw, i, 16)*16.0;         i += 16;
+		eph.cic = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.cis = getbits(Raw, i, 16)*P2_29;        i += 16;
+		eph.i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.crc = getbits(Raw, i, 16)*P2_5;         i += 16;
+		eph.omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
+		eph.tgd[0] = getbits(Raw, i, 8)*P2_31;        i += 8;
+		eph.svh = getbitu(Raw, i, 6);              i += 6;
+		eph.flag = getbitu(Raw, i, 1);              i += 1;
+		eph.fit = getbitu(Raw, i, 1) ? 0.0 : 4.0; /* 0:4hr,1:>4hr */
+	}
+	else {
+
+		return -1;
+	}
+
+	
+	if (!(sat = satno(sys, prn))) {
+		trace(2, "rtcm3 1047 satellite number error: prn=%d\n", prn);
+		return -1;
+	}
+	eph.sat = sat;
+	eph.week = adjbdtweek(week);
+	eph.toe = bdt2gpst(bdt2time(eph.week, eph.toes)); /* bdt -> gpst */
+	eph.toc = bdt2gpst(bdt2time(eph.week, toc));      /* bdt -> gpst */
+	eph.ttr = raw->time;
+	eph.A = sqrtA*sqrtA;
+
+		if (eph.iode == raw->nav.eph[sat - 1].iode) return 0; /* unchanged */
+	
+	raw->nav.eph[sat - 1] = eph;
+	raw->ephsat = sat;
+	return 2;
+}
+
+/* decode ATOM.RNX message -----------------------------------------*/
 static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
-	extern const char *msm_sig_gps[32], *msm_sig_glo[32];
+	extern const char *msm_sig_gps[32], *msm_sig_glo[32], *msm_sig_qzs[32], *msm_sig_gal[32], *msm_sig_sbs[32], *msm_sig_cmp[32];
 	char www[64];
-	int i, j, l, m, week;
-	double FinePseudoPhase;
+	int i, j, l, m, week, sys, g=7, gnss[8];
+	double FinePseudoPhase, X_coordinate, Y_coordinate, Z_coordinate, Antenna_height,
+		X_velocity, Y_velocity, Z_velocity, Receiver_clock_offset, Receiver_clock_drift;
 	int Doppler[MAX_SATS], FineDoppler[MAX_SATS][MAX_SIGS];
 	unsigned int GNSSmask, version, ref_st_ID, multiple, IODS, smoothing, position_presentation, primary_GNSS_system,
 		primary_time_tag, time_tag_extension_type, fractional_second, hour, day, divergence_free_smoothing_indicator,
@@ -349,7 +550,9 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		sig_type[MAX_SATS][MAX_SIGS], offs, ncell, need_bits, Int_num_sat_ranges[MAX_SATS], Sat_rough_range[MAX_SATS], Azimuth[MAX_SATS],
 		Elevation[MAX_SATS], Full_Range_Available[MAX_SATS], Satellite_Usage_Status[MAX_SATS], ChannelNumber[MAX_SATS][MAX_SIGS],
 		FinePseudoRange[MAX_SATS][MAX_SIGS], CycSlipCounter[MAX_SATS][MAX_SIGS], IntCycPhase[MAX_SATS][MAX_SIGS],
-		FracCycPhase[MAX_SATS][MAX_SIGS], SNR[MAX_SATS][MAX_SIGS], ExtSuppData[MAX_SATS][MAX_SIGS][2], Reference_P[MAX_SATS];
+		FracCycPhase[MAX_SATS][MAX_SIGS], SNR[MAX_SATS][MAX_SIGS], ExtSuppData[MAX_SATS][MAX_SIGS][2], Reference_P[MAX_SATS], 
+		Motion_flag, Position_quality_flag, Position_tagging, Clarifier_switch, Clarification_data, Clock_estimate_status, 
+		ITRF_epoch_year, GPS_UTC_time_offset, The_number_of_GNSS_time_cycles, Receiver_time_status;
 
 	if (k + 58 > mes_len * 8)
 	{
@@ -379,12 +582,17 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 	GNSSmask = getbitu(Raw, k, 8); k += 8;
 	printf("GNSS mask=");
-	for (j = 1; j < 129;j*=2)
-	    printf("%d", !(!(GNSSmask&j)) );
+	for (j = 1; j < 129; j *= 2)
+	{
+		gnss[g] = !(!(GNSSmask&j));
+		printf("%d", !(!(GNSSmask&j)));
+		g--;
+	}
 	printf("\n");
-	if (0 == GNSSmask)
+	if ((0 == GNSSmask) && (0 == position_presentation))
 	{
 		printf("no info message\n");
+		printf("raw->obs.n=%d\n", raw->obs.n);
 		return 1;
 	}
 
@@ -415,443 +623,545 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 	cumulative_session_transmitting_time_indicator = getbitu(Raw, k, 7); k += 7;
 	printf("Cumulative session transmitting time indicator=%d\n", cumulative_session_transmitting_time_indicator);
-
-	/*Observables mask*/
-	if (k + 16 > mes_len * 8)
+	
+	/*Message starts here*/
+	for (g = 0; g < 8; g++)
 	{
-		printf("Invalid message: Len_Observable mask\n");
-		return -1;
-	}
-
-	Data_ID_change_counter = getbitu(Raw, k, 5); k += 5;
-	printf("Data_ID_change_counter=%d\n", Data_ID_change_counter);
-
-	Data_ID_follow = getbitu(Raw, k, 1); k += 1;
-	printf("Data_ID_follow=%d\n", Data_ID_follow);
-
-	Nms_follow = getbitu(Raw, k, 1); k += 1;
-	printf("Nms_follow=%d\n", Nms_follow);
-
-	Supplementary_follow = getbitu(Raw, k, 2); k += 2;
-	printf("Supplementary_follow=%d\n", Supplementary_follow);
-
-	Pseudo_range_follow = getbitu(Raw, k, 2); k += 2;
-	printf("Pseudo_range_follow=%d\n", Pseudo_range_follow);
-
-	Carrier_phase_follow = getbitu(Raw, k, 2); k += 2;
-	printf("Carrier_phase_follow=%d\n", Carrier_phase_follow);
-
-	Resolution = getbitu(Raw, k, 1); k += 1;
-	printf("Resolution=%d\n", Resolution);
-
-	Reserved1 = getbitu(Raw, k, 1); k += 1;
-	printf("Reserved1=%d\n", Reserved1);
-
-	Reserved2 = getbitu(Raw, k, 1); k += 1;
-	printf("Reserved2=%d\n", Reserved2);
-
-	/*Sat/Sig mask*/
-	if (Data_ID_follow != 1)
-	{
-		printf("Invalid message: Data Id follow\n");
-		return -1;
-	}
-	if (version == 2)
-	{
-		if (k + 96 > mes_len * 8)
+		if (0 == gnss[g])
+			continue;
+		else
 		{
-			printf("Invalid message: Len_Sat/Sig MASK1\n");
+			switch (g){
+			case 0: sys = SYS_GPS; break;
+			case 1: sys = SYS_SBS; break;
+			case 2: sys = SYS_GLO; break;
+			case 3: sys = SYS_GAL; break;
+			case 4: sys = SYS_QZS; break;
+			case 5: sys = SYS_CMP; break;
+			default: continue;
+			}
+		}
+		/*Observables mask*/
+		if (k + 16 > mes_len * 8)
+		{
+			printf("Invalid message: Len_Observable mask\n");
 			return -1;
 		}
 
-		Satellite_mask[0] = getbitu(Raw, k, 32); k += 32;
-		Satellite_mask[1] = getbitu(Raw, k, 32); k += 32;
-		printf("Satellite_mask=%08x%08x\n", Satellite_mask[0], Satellite_mask[1]);
-		Satellite_mask_len[0] = 32; Satellite_mask_len[1] = 32;
+		Data_ID_change_counter = getbitu(Raw, k, 5); k += 5;
+		printf("Data_ID_change_counter=%d\n", Data_ID_change_counter);
 
-		Signal_mask = getbitu(Raw, k, 32); k += 32;
-		printf("Signal_mask=%x\n", Signal_mask);
-		Signal_mask_len = 32;
-	}
-	else
-	{
-		if (k + 72 > mes_len * 8)
+		Data_ID_follow = getbitu(Raw, k, 1); k += 1;
+		printf("Data_ID_follow=%d\n", Data_ID_follow);
+
+		Nms_follow = getbitu(Raw, k, 1); k += 1;
+		printf("Nms_follow=%d\n", Nms_follow);
+
+		Supplementary_follow = getbitu(Raw, k, 2); k += 2;
+		printf("Supplementary_follow=%d\n", Supplementary_follow);
+
+		Pseudo_range_follow = getbitu(Raw, k, 2); k += 2;
+		printf("Pseudo_range_follow=%d\n", Pseudo_range_follow);
+
+		Carrier_phase_follow = getbitu(Raw, k, 2); k += 2;
+		printf("Carrier_phase_follow=%d\n", Carrier_phase_follow);
+
+		Resolution = getbitu(Raw, k, 1); k += 1;
+		printf("Resolution=%d\n", Resolution);
+
+		Reserved1 = getbitu(Raw, k, 1); k += 1;
+		printf("Reserved1=%d\n", Reserved1);
+
+		Reserved2 = getbitu(Raw, k, 1); k += 1;
+		printf("Reserved2=%d\n", Reserved2);
+
+		/*Sat/Sig mask*/
+		if (Data_ID_follow != 1)
 		{
-			printf("Invalid message: Len_Sat/Sig MASK2\n");
+			printf("Invalid message: Data Id follow\n");
 			return -1;
 		}
-
-		Satellite_mask[0] = getbitu(Raw, k, 32); k += 32;
-		Satellite_mask[1] = getbitu(Raw, k, 8); k += 8;
-		printf("Satellite_mask=%08x%02x\n", Satellite_mask[0], Satellite_mask[1]);
-		Satellite_mask_len[0] = 32; Satellite_mask_len[1] = 8;
-
-		Signal_mask = getbitu(Raw, k, 24); k += 24;
-		printf("Signal_mask=%x\n", Signal_mask);
-		Signal_mask_len = 24;
-		k += 8; /* reserved*/
-	}
-
-	sat_cnt = get_active_bits(Satellite_mask[0], Satellite_mask_len[0]);
-	sat_cnt += get_active_bits(Satellite_mask[1], Satellite_mask_len[1]);
-	sig_cnt = get_active_bits(Signal_mask, Signal_mask_len);
-
-	/*	printf("sat_cnt=%d\n", sat_cnt);
-	printf("sig_cnt=%d\n", sig_cnt);*/
-
-	/*Cell mask*/
-	if (sat_cnt*sig_cnt > 64)
-	{
-		printf("Invalid CellMask %d\n", sat_cnt*sig_cnt);
-		return -1;
-	}
-
-	if (k + sat_cnt*sig_cnt > mes_len * 8)
-	{
-		printf("Invalid message: Len_Cell mask\n");
-		return -1;
-	}
-
-	offs = 0;
-	for (l = j = 0; l < sizeof(Satellite_mask) / sizeof(Satellite_mask[0]); ++l)
-	{
-		unsigned int mask = Satellite_mask[l];
-		unsigned int mask_len = Satellite_mask_len[l];
-		for (i = 0; i < mask_len; ++i)
+		if (version == 2)
 		{
-			if (mask & (1 << (mask_len - i - 1)))
+			if (k + 96 > mes_len * 8)
 			{
-				/*printf( "sat[%d]=%d\n", j, i + offs );*/
-				sat[j++] = i + offs;
+				printf("Invalid message: Len_Sat/Sig MASK1\n");
+				return -1;
 			}
-		}
-		offs += Satellite_mask_len[l];
-	}
 
-	{
-		unsigned int mask = Signal_mask;
-		unsigned int mask_len = Signal_mask_len;
-		for (j = i = 0; i < mask_len; ++i)
-		{
-			if (mask & (1 << (mask_len - i - 1)))
-			{
-				/*printf( "sig[%d]=%d\n", j, i );*/
-				sig[j++] = i;
-			}
-		}
-	}
+			Satellite_mask[0] = getbitu(Raw, k, 32); k += 32;
+			Satellite_mask[1] = getbitu(Raw, k, 32); k += 32;
+			printf("Satellite_mask=%08x%08x\n", Satellite_mask[0], Satellite_mask[1]);
+			Satellite_mask_len[0] = 32; Satellite_mask_len[1] = 32;
 
-	ncell = 0;
-	for (i = 0; i < sat_cnt; i++)
-	{
-		unsigned int mask = getbitu(Raw, k, sig_cnt); k += sig_cnt;
-		sat_sig_cnt[sat[i]] = 0;
-
-		for (j = 0; j < sig_cnt; ++j)
-		{
-			if (mask & (1 << (sig_cnt - j - 1)))
-			{
-				/*printf( "sat=%d sig[%d]=%d\n", sat[ i], sat_sig_cnt[ sat[ i]], sig[ j] );*/
-				sig_type[sat[i]][sat_sig_cnt[sat[i]]] = sig[j];
-				sat_sig_cnt[sat[i]]++;
-			}
-		}
-
-		ncell += sat_sig_cnt[sat[i]];
-		/*printf( "sat_sig_cnt[%d]=%d mask=%x\n", sat[ i], sat_sig_cnt[ sat[ i]], mask );*/
-	}
-
-	printf("ncell=%d\n", ncell);
-
-	/*Sattelite Data*/
-	need_bits = 0;
-	if (Nms_follow == 1)
-		need_bits += sat_cnt * 8;
-	if (Pseudo_range_follow == 2)
-		need_bits += sat_cnt * 10;
-	if (Supplementary_follow == 2)
-		need_bits += sat_cnt * 32;
-	if (k + need_bits > mes_len * 8)
-	{
-		printf("Invalid message: Len_Sattelite Data\n");
-		return -1;
-	}
-
-	for (i = 0; i < sat_cnt; i++)
-	{
-		if (Nms_follow == 1)
-		{
-			Int_num_sat_ranges[sat[i]] = getbitu(Raw, k, 8); k += 8;
+			Signal_mask = getbitu(Raw, k, 32); k += 32;
+			printf("Signal_mask=%x\n", Signal_mask);
+			Signal_mask_len = 32;
 		}
 		else
-			Int_num_sat_ranges[sat[i]] = 255;
-	}
+		{
+			if (k + 72 > mes_len * 8)
+			{
+				printf("Invalid message: Len_Sat/Sig MASK2\n");
+				return -1;
+			}
 
-	if (Pseudo_range_follow == 2)
-	{
+			Satellite_mask[0] = getbitu(Raw, k, 32); k += 32;
+			Satellite_mask[1] = getbitu(Raw, k, 8); k += 8;
+			printf("Satellite_mask=%08x%02x\n", Satellite_mask[0], Satellite_mask[1]);
+			Satellite_mask_len[0] = 32; Satellite_mask_len[1] = 8;
+
+			Signal_mask = getbitu(Raw, k, 24); k += 24;
+			printf("Signal_mask=%x\n", Signal_mask);
+			Signal_mask_len = 24;
+			k += 8; /* reserved*/
+		}
+
+		sat_cnt = get_active_bits(Satellite_mask[0], Satellite_mask_len[0]);
+		sat_cnt += get_active_bits(Satellite_mask[1], Satellite_mask_len[1]);
+		sig_cnt = get_active_bits(Signal_mask, Signal_mask_len);
+		printf("sat_cnt=%d\n", sat_cnt);
+		printf("sig_cnt=%d\n", sig_cnt);
+		
+		printf("sat mask=");
+		for (j = 0; j < 2; ++j)
+		{
+			for (i = 0; i < 32; ++i)
+			{
+				printf("%d", !(!(Satellite_mask[j] & (1 << 32 - i - 1))));
+			}
+		}
+		printf("\n");
+
+		printf("sig mask=");
+			for (i = 0; i < 32; ++i)
+			{
+				printf("%d", !(!(Signal_mask & (1 << 32 - i - 1))));
+			}
+		printf("\n");
+
+
+		/*Cell mask*/
+		if (sat_cnt*sig_cnt > 64)
+		{
+			printf("Invalid CellMask %d\n", sat_cnt*sig_cnt);
+			return -1;
+		}
+
+		if (k + sat_cnt*sig_cnt > mes_len * 8)
+		{
+			printf("Invalid message: Len_Cell mask\n");
+			return -1;
+		}
+
+		offs = 0;
+		for (l = j = 0; l < sizeof(Satellite_mask) / sizeof(Satellite_mask[0]); ++l)
+		{
+			unsigned int mask = Satellite_mask[l];
+			unsigned int mask_len = Satellite_mask_len[l];
+			for (i = 0; i < mask_len; ++i)
+			{
+				if (mask & (1 << (mask_len - i - 1)))
+				{
+					printf( "sat[%d]=%d\n", j, i + offs );
+					sat[j++] = i + offs;
+				}
+			}
+			offs += Satellite_mask_len[l];
+		}
+
+		{
+			unsigned int mask = Signal_mask;
+			unsigned int mask_len = Signal_mask_len;
+			for (j = i = 0; i < mask_len; ++i)
+			{
+				if (mask & (1 << (mask_len - i - 1)))
+				{
+					/*printf( "sig[%d]=%d\n", j, i );*/
+					sig[j++] = i;
+				}
+			}
+		}
+
+		ncell = 0;
+		/*printf("CellMask=");*/
+		unsigned int *CellMask;
+		if (NULL == (CellMask = (unsigned int*)malloc(sat_cnt*sizeof(unsigned int))))
+		{
+			printf("Error allocating CellMask memory\n");
+			return -1;
+		}
 		for (i = 0; i < sat_cnt; i++)
 		{
-			Sat_rough_range[sat[i]] = getbitu(Raw, k, 10); k += 10;
+			CellMask[i] = getbitu(Raw, k, sig_cnt); k += sig_cnt;			
+			sat_sig_cnt[sat[i]] = 0;
+
+			for (j = 0; j < sig_cnt; ++j)
+			{
+				/*printf("%d", !(!(CellMask[i] & (1 << (sig_cnt - j - 1)))) );*/
+				if (CellMask[i] & (1 << (sig_cnt - j - 1)))
+				{
+					/*printf( "sat=%d sig[%d]=%d\n", sat[ i], sat_sig_cnt[ sat[ i]], sig[ j] );*/
+					sig_type[sat[i]][sat_sig_cnt[sat[i]]] = sig[j];
+					sat_sig_cnt[sat[i]]++;
+				}
+			}
+
+			ncell += sat_sig_cnt[sat[i]];
+			/*printf("sat_sig_cnt[%d]=%d mask=%x\n", sat[i], sat_sig_cnt[sat[i]], CellMask[i]);*/
 		}
-	}
+		printf("\n");
 
-	for (i = 0; i < sat_cnt; i++)  /* Reference PseudoRange */
-	{
-		Reference_P[sat[i]] = Int_num_sat_ranges[sat[i]] * 1024 + Sat_rough_range[sat[i]];
-	}
 
-	if (Supplementary_follow == 2)
-	{
+		/*printf("ncell=%d\n", ncell);*/
+
+		/*Sattelite Data*/
+		need_bits = 0;
+		if (Nms_follow == 1)
+			need_bits += sat_cnt * 8;
+		if (Pseudo_range_follow == 2)
+			need_bits += sat_cnt * 10;
+		if (Supplementary_follow == 2)
+			need_bits += sat_cnt * 32;
+		if (k + need_bits > mes_len * 8)
+		{
+			printf("Invalid message: Len_Sattelite Data\n");
+			return -1;
+		}
+
 		for (i = 0; i < sat_cnt; i++)
 		{
-			Azimuth[sat[i]] = getbitu(Raw, k, 8); k += 8;
-			Elevation[sat[i]] = getbitu(Raw, k, 7); k += 7;
-			Doppler[sat[i]] = getbits(Raw, k, 14); k += 14;
-			Full_Range_Available[sat[i]] = getbitu(Raw, k, 1); k += 1;
-			Satellite_Usage_Status[sat[i]] = getbitu(Raw, k, 2); k += 2;
-		}
-	}
-
-
-	/* Signal data*/
-	need_bits = 0;
-	if (Pseudo_range_follow == 1 || Pseudo_range_follow == 2)
-		need_bits += ncell*(Resolution == 0 ? 15 : 20);
-	if (Carrier_phase_follow == 2)
-		need_bits += ncell*(Resolution == 0 ? 16 : 22);
-	if (Carrier_phase_follow == 1 || Carrier_phase_follow == 2)
-		need_bits += ncell*(Resolution == 0 ? 8 : 10);
-	if (Supplementary_follow == 1 || Supplementary_follow == 2)
-		need_bits += ncell*(Resolution == 0 ? 6 : 10);
-	if (Supplementary_follow == 2)
-		need_bits += ncell*(Resolution == 0 ? 56 : 64);
-	if (k + need_bits > mes_len * 8)
-	{
-		printf("Invalid message: Len_Signal Data\n");
-		return -1;
-	}
-
-	for (i = 0; i < sat_cnt; i++) /*PseudoRange */
-	{
-		int s = sat[i];
-		int sat_sig = sat_sig_cnt[s];
-		for (j = 0; j < sat_sig; j++)
-		{
-			int ss = sig_type[s][j];
-			int len = (Resolution == 0 ? 15 : 20);
-			FinePseudoRange[s][ss] = getbitu(Raw, k, len); k += len;
-		}
-	}
-
-	for (i = 0; i < sat_cnt; i++)
-	{
-		int s = sat[i];
-		int sat_sig = sat_sig_cnt[s];
-		for (j = 0; j < sat_sig; j++)
-		{
-			int ss = sig_type[s][j];
-			int len = (Resolution == 0 ? 4 : 10);
-			CycSlipCounter[s][ss] = getbitu(Raw, k, len); k += len;
-			IntCycPhase[s][ss] = getbitu(Raw, k, 12); k += 12;
-		}
-	}
-
-	for (i = 0; i < sat_cnt; i++) /*Phase */
-	{
-		int s = sat[i];
-		int sat_sig = sat_sig_cnt[s];
-		for (j = 0; j < sat_sig; j++)
-		{
-			int ss = sig_type[s][j];
-			int len = (Resolution == 0 ? 8 : 10);
-			FracCycPhase[s][ss] = getbitu(Raw, k, len); k += len;
-		}
-	}
-
-	for (i = 0; i < sat_cnt; i++)
-	{
-		int s = sat[i];
-		int sat_sig = sat_sig_cnt[s];
-		for (j = 0; j < sat_sig; j++)
-		{
-			int ss = sig_type[s][j];
-			int len = (Resolution == 0 ? 6 : 10);
-			SNR[s][ss] = getbitu(Raw, k, len); k += len;
-		}
-	}
-
-	for (i = 0; i < sat_cnt; i++)/* Utochnenii doppler tut */
-	{
-		int s = sat[i];
-		int sat_sig = sat_sig_cnt[s];
-		for (j = 0; j < sat_sig; j++)
-		{
-			int ss = sig_type[s][j];
-			int len = (Resolution == 0 ? 56 : 64);
-			ChannelNumber[s][ss] = getbitu(Raw, k, 8); k += 8;
-			FineDoppler[s][ss] = getbits(Raw, k, 15); k += 15;
-			ExtSuppData[s][ss][0] = getbitu(Raw, k, 9); k += 9;
-			ExtSuppData[s][ss][1] = getbitu(Raw, k, (len - 32)); k += (len - 32);
-		}
-	}
-
-	/* Position reference*/
-	need_bits = 0;
-	if (position_presentation == 1)
-		need_bits += 128;
-	else
-	if (position_presentation == 2)
-		need_bits += 152;
-	else
-	if (position_presentation == 3)
-		need_bits += 280;
-	if (k + need_bits > mes_len * 8)
-	{
-		printf("Invalid message: Len_PositionRef Data %d %d %d\n", k, mes_len * 8, k + need_bits);
-		return -1;
-	}
-
-	k += need_bits;
-
-	printf("\n Message Complete!!! %d %d\n\n", k, mes_len * 8);
-
-	/* rtklib_time */
-	int n, prn, s, freq[32], ind[32];
-	unsigned char code[32];
-
-	time2str(raw->time, www, 0);
-	printf("TIME_before=%s\n", www);
-	time2gpst(raw->time, &week); /*calculating week*/
-	if (time_tag_extension_type == 0)
-	{
-		raw->time = gpst2time(week, (day*86400.) + (hour*3600.) + primary_time_tag);
-	}
-	else
-	{
-		raw->time = gpst2time(week, primary_time_tag);
-	}
-	time2str(raw->time, www, 0);
-	printf("TIME_after=%s\n", www);
-
-	/* RTKlib fields filling*/
-	if (128 == GNSSmask)/*GPS*/
-	{
-		printf("----------!!!GPS obs message!!!\n");
-		for (i = n = 0; i < sat_cnt; i++)
-		{
-			unsigned int si = sat[i];
-			const char* sig_obs[32];
-			int index;
-			double tt;
-
-			for (m = 0; m < sig_cnt; m++)
+			if (Nms_follow == 1)
 			{
-				/* signal to rinex obs type */
-				sig_obs[m] = msm_sig_gps[sig[m]];
-				code[m] = obs2code(sig_obs[m], freq + m);
+				Int_num_sat_ranges[sat[i]] = getbitu(Raw, k, 8); k += 8;
 			}
-			sigindex(SYS_GPS, code, freq, sig_cnt, 0, ind);
+			else
+				Int_num_sat_ranges[sat[i]] = 255;
+		}
 
-			prn = si + 1; /* sdvigaem schetchik na 1 */
-
-			if ((s = satno(SYS_GPS, prn))) {
-				tt = timediff(raw->obs.data[0].time, raw->time);
-				if (fabs(tt) > 1E-9) {
-					raw->obs.n = 0;
-				}
-				index = obsindex(&raw->obs, raw->time, s);
-			}
-
-
-			for (j = 0; j < sat_sig_cnt[si] && j < NFREQ + NEXOBS; j++)
-				/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
+		if (Pseudo_range_follow == 2)
+		{
+			for (i = 0; i < sat_cnt; i++)
 			{
-				int ss = sig_type[si][j];
-				double wl = satwavelen(sat, freq[j] - 1, NULL);
-				if (s&&index >= 0 && ind[j] >= 0)
+				Sat_rough_range[sat[i]] = getbitu(Raw, k, 10); k += 10;
+			}
+		}
+
+		for (i = 0; i < sat_cnt; i++)  /* Reference PseudoRange */
+		{
+			Reference_P[sat[i]] = Int_num_sat_ranges[sat[i]] * 1024 + Sat_rough_range[sat[i]];
+		}
+
+		if (Supplementary_follow == 2)
+		{
+			for (i = 0; i < sat_cnt; i++)
+			{
+				Azimuth[sat[i]] = getbitu(Raw, k, 8); k += 8;
+				Elevation[sat[i]] = getbitu(Raw, k, 7); k += 7;
+				Doppler[sat[i]] = getbits(Raw, k, 14); k += 14;
+				Full_Range_Available[sat[i]] = getbitu(Raw, k, 1); k += 1;
+				Satellite_Usage_Status[sat[i]] = getbitu(Raw, k, 2); k += 2;
+			}
+		}
+
+
+		/* Signal data*/
+		need_bits = 0;
+		if (Pseudo_range_follow == 1 || Pseudo_range_follow == 2)
+			need_bits += ncell*(Resolution == 0 ? 15 : 20);
+		if (Carrier_phase_follow == 2)
+			need_bits += ncell*(Resolution == 0 ? 16 : 22);
+		if (Carrier_phase_follow == 1 || Carrier_phase_follow == 2)
+			need_bits += ncell*(Resolution == 0 ? 8 : 10);
+		if (Supplementary_follow == 1 || Supplementary_follow == 2)
+			need_bits += ncell*(Resolution == 0 ? 6 : 10);
+		if (Supplementary_follow == 2)
+			need_bits += ncell*(Resolution == 0 ? 56 : 64);
+		if (k + need_bits > mes_len * 8)
+		{
+			printf("Invalid message: Len_Signal Data\n");
+			return -1;
+		}
+
+		for (i = 0; i < sat_cnt; i++) /*PseudoRange */
+		{
+			int s = sat[i];
+			int sat_sig = sat_sig_cnt[s];
+			for (j = 0; j < sat_sig; j++)
+			{
+				int ss = sig_type[s][j];
+				int len = (Resolution == 0 ? 15 : 20);
+				FinePseudoRange[s][ss] = getbitu(Raw, k, len); k += len;
+			}
+		}
+
+		for (i = 0; i < sat_cnt; i++)
+		{
+			int s = sat[i];
+			int sat_sig = sat_sig_cnt[s];
+			for (j = 0; j < sat_sig; j++)
+			{
+				int ss = sig_type[s][j];
+				int len = (Resolution == 0 ? 4 : 10);
+				CycSlipCounter[s][ss] = getbitu(Raw, k, len); k += len;
+				IntCycPhase[s][ss] = getbitu(Raw, k, 12); k += 12;
+			}
+		}
+
+		for (i = 0; i < sat_cnt; i++) /*Phase */
+		{
+			int s = sat[i];
+			int sat_sig = sat_sig_cnt[s];
+			for (j = 0; j < sat_sig; j++)
+			{
+				int ss = sig_type[s][j];
+				int len = (Resolution == 0 ? 8 : 10);
+				FracCycPhase[s][ss] = getbitu(Raw, k, len); k += len;
+			}
+		}
+
+		for (i = 0; i < sat_cnt; i++)
+		{
+			int s = sat[i];
+			int sat_sig = sat_sig_cnt[s];
+			for (j = 0; j < sat_sig; j++)
+			{
+				int ss = sig_type[s][j];
+				int len = (Resolution == 0 ? 6 : 10);
+				SNR[s][ss] = getbitu(Raw, k, len); k += len;
+			}
+		}
+
+		for (i = 0; i < sat_cnt; i++)/* Utochnenii doppler tut */
+		{
+			int s = sat[i];
+			int sat_sig = sat_sig_cnt[s];
+			for (j = 0; j < sat_sig; j++)
+			{
+				int ss = sig_type[s][j];
+				int len = (Resolution == 0 ? 56 : 64);
+				ChannelNumber[s][ss] = getbitu(Raw, k, 8); k += 8;
+				FineDoppler[s][ss] = getbits(Raw, k, 15); k += 15;
+				ExtSuppData[s][ss][0] = getbitu(Raw, k, 9); k += 9;
+				ExtSuppData[s][ss][1] = getbitu(Raw, k, (len - 32)); k += (len - 32);
+			}
+		}
+
+		/* rtklib_time */
+		int n, prn, s, freq[32], ind[32];
+		unsigned char code[32];
+
+		time2str(raw->time, www, 0);
+		printf("TIME_before=%s\n", www);
+		time2gpst(raw->time, &week); /*calculating week*/
+		if (time_tag_extension_type == 0)
+		{
+			raw->time = gpst2time(week, (day*86400.) + (hour*3600.) + primary_time_tag);
+		}
+		else
+		{
+			raw->time = gpst2time(week, primary_time_tag);
+		}
+		time2str(raw->time, www, 0);
+		printf("TIME_after=%s\n", www);
+
+			for (i = n = 0; i < sat_cnt; i++)
+			{
+				unsigned int si = sat[i];
+				const char* sig_obs[32];
+				int index;
+				double tt, wl;
+							
+				for (m = 0; m < sig_cnt; m++)
 				{
-					raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[si][ss];
-					raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[si])*RANGE_MS / 1024., 655.36, FinePseudoRange[si][ss] * 0.02);
-					if (wl > 0.0)
-					{
-						FinePseudoPhase = (double)(FracCycPhase[si][ss] / (256.) + IntCycPhase[si][ss]);
-						raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[si] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
+					/* signal to rinex obs type */
+					switch (sys) {
+					case SYS_GPS: sig_obs[m] = msm_sig_gps[sig[m]]; break;
+					case SYS_GLO: sig_obs[m] = msm_sig_glo[sig[m]]; break;
+					case SYS_GAL: sig_obs[m] = msm_sig_gal[sig[m]]; break;
+					case SYS_QZS: sig_obs[m] = msm_sig_qzs[sig[m]]; break;
+					case SYS_SBS: sig_obs[m] = msm_sig_sbs[sig[m]]; break;
+					case SYS_CMP: sig_obs[m] = msm_sig_cmp[sig[m]]; break;
+					default: sig_obs[m] = ""; break;
 					}
-					if (wl > 0.0)
-					{
-						raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss] * 0.0001) / wl;
+					code[m] = obs2code(sig_obs[m], freq + m);
+				}
+
+				/* freqency index for beidou */
+				if (sys == SYS_CMP) {
+					if (freq[m] == 5) freq[m] = 2; /* B2 */
+					else if (freq[m] == 4) freq[m] = 3; /* B3 */
+				}
+
+				sigindex(sys, code, freq, sig_cnt, 0, ind);
+
+				prn = si + 1; /* sdvigaem schetchik na 1 */
+				if (sys == SYS_QZS) prn += MINPRNQZS - 1;
+				else if (sys == SYS_SBS) prn += MINPRNSBS - 1;
+
+				if ((s = satno(sys, prn))) {
+					tt = timediff(raw->obs.data[0].time, raw->time);
+					if (fabs(tt) > 1E-9) {
+						raw->obs.n = 0;
 					}
-					raw->obs.data[index].SNR[ind[j]] = SNR[si][ss] / 0.25;
-					raw->obs.data[index].code[ind[j]] = code[j];
+					index = obsindex(&raw->obs, raw->time, s);
 				}
-				n++;
-			}
-			printf("sat %d added\n", s);
-		}
-	}
-	else if (32 == GNSSmask) /*GLO*/
-	{
-		printf("----------!!!GLO obs message!!!\n");
-		for (i = n = 0; i < sat_cnt; i++)
-		{
-			unsigned int si = sat[i];
-			const char* sig_obs[32];
-			int index;
-			double tt;
 
-			for (m = 0; m < sig_cnt; m++)
-			{
-				/* signal to rinex obs type */
-				sig_obs[m] = msm_sig_glo[sig[m]];
-				code[m] = obs2code(sig_obs[m], freq + m);
-			}
-			sigindex(SYS_GLO, code, freq, sig_cnt, 0, ind);
-
-			prn = si + 1; /* sdvigaem schetchik na 1 */
-
-			if ((s = satno(SYS_GLO, prn))) {
-				tt = timediff(raw->obs.data[0].time, raw->time);
-				if (fabs(tt) > 1E-9) {
-					raw->obs.n = 0;
-				}
-				index = obsindex(&raw->obs, raw->time, s);
-			}
-
-
-			for (j = 0; j < sat_sig_cnt[si] && j < NFREQ + NEXOBS; j++)
-				/*for (j = 0; j < sat_sig_cnt[ si] ; j++) */
-			{
-				int ss = sig_type[si][j];
-				double wl = satwavelen(sat, freq[j] - 1, NULL);
-				if (s&&index >= 0 && ind[j] >= 0)
+				printf("sat_sig_cnt[%d]=%d\n", si, sat_sig_cnt[si]);
+				/*for (j = 0; j < sat_sig_cnt[si] && j < NFREQ + NEXOBS; j++)*/
+				int l = 0;
+				for (j = 0; j < sat_sig_cnt[si] && j < NFREQ + NEXOBS; j++)
 				{
-					raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[si][ss];
-					raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[si])*RANGE_MS / 1024., 655.36, FinePseudoRange[si][ss] * 0.02);
-					if (wl > 0.0)
+					if ( (j + l) >= sig_cnt)
+						break;
+					int ss = sig_type[si][j];
+					while( (!(CellMask[i] & (1 << (sig_cnt - j - l - 1))))  )
 					{
-						FinePseudoPhase = (double)(FracCycPhase[si][ss] / (256.) + IntCycPhase[si][ss]);
-						raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[si] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
+						++l;
 					}
-					if (wl > 0.0)
+					raw->obs.data[index].code[ind[j]] = code[j+l];
+
+					wl = satwavelen(s, freq[j+l] - 1, &raw->nav);
+
+					if (s&&index >= 0 && ind[j] >= 0)
 					{
-						raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss] * 0.0001) / wl;
+						raw->obs.data[index].LLI[ind[j]] = CycSlipCounter[si][ss];
+						raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[si])*RANGE_MS / 1024., 655.36, FinePseudoRange[si][ss] * 0.02);
+						if (wl > 0.0)
+						{
+							FinePseudoPhase = (double)(FracCycPhase[si][ss] / (256.) + IntCycPhase[si][ss]);
+							raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[si] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
+						}
+						if (wl > 0.0)
+						{
+							raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler[si][ss] * 0.0001) / wl;
+							printf("Doppler[%d]=%lf\n", ind[j], raw->obs.data[index].D[ind[j]]);
+						}
+						raw->obs.data[index].SNR[ind[j]] = SNR[si][ss] / 0.25;
+						printf("%d signal dobavlen. code=%d\n", j, code[j+l]);
 					}
-					raw->obs.data[index].SNR[ind[j]] = SNR[si][ss] / 0.25;
-					raw->obs.data[index].code[ind[j]] = code[j];
+					else printf("index=%d, ind[%d]=%d\n", index, j, ind[j]);
+					n++;
 				}
-				n++;
+				printf("sat %d added\n", s);
 			}
-			printf("sat %d added\n", s);
+			free(CellMask);
+	}
+
+	/*Position message*/
+	if (position_presentation) 
+	{
+		if (k + 128 > mes_len * 8)
+		{
+			printf("Invalid message: Len_Reference Position \n");
+			return -1;
+		}
+
+		Motion_flag = getbitu(Raw, k, 1); k += 1;
+		printf("Motion_flag=%d\n", Motion_flag);
+
+		Position_quality_flag = getbitu(Raw, k, 3); k += 3; k += 7;
+		printf("Position_quality_flag=%d\n", Position_quality_flag);
+
+		Position_tagging = getbitu(Raw, k, 3); k += 3;
+		printf("Position_tagging=%d\n", Position_tagging);
+
+		raw->sta.deltype = 0;
+
+		X_coordinate = getbits_38(Raw, k)*0.0001; k += 38;
+		printf("X_coordinate=%lf\n", X_coordinate);
+		raw->sta.pos[0] = X_coordinate;
+		raw->sta.del[0] = 0.;
+
+		Y_coordinate = getbits_38(Raw, k)*0.0001; k += 38;
+		printf("Y_coordinate=%lf\n", Y_coordinate);
+		raw->sta.pos[1] = Y_coordinate;
+		raw->sta.del[1] = 0.;
+
+		Z_coordinate = getbits_38(Raw, k)*0.0001; k += 38;
+		printf("Z_coordinate=%lf\n", Z_coordinate);
+		raw->sta.pos[2] = Z_coordinate;
+		raw->sta.del[2] = 0.;
+
+		if (1 < position_presentation)
+		{
+			if (k + 24 > mes_len * 8)
+			{
+				printf("Invalid message: Len_Reference Position \n");
+				return -1;
+			}
+			Clarifier_switch = getbitu(Raw, k, 2); k += 2;
+			printf("Clarifier_switch=%d\n", Clarifier_switch);
+
+			if (0 == Clarifier_switch)
+			{
+				ITRF_epoch_year = getbitu(Raw, k, 6); k += 6;
+				printf("ITRF_epoch_year=%d\n", ITRF_epoch_year);
+				raw->sta.itrf = ITRF_epoch_year;
+
+				Antenna_height = getbitu(Raw, k, 16)*0.0001; k += 16;
+				printf("Antenna_height=%.16lf\n", Antenna_height);
+				raw->sta.hgt = Antenna_height;
+			}
+			else if (1 == Clarifier_switch)
+			{
+				GPS_UTC_time_offset = getbitu(Raw, k, 6); k += 6;
+				printf("GPS_UTC_time_offset=%d\n", GPS_UTC_time_offset);
+
+				The_number_of_GNSS_time_cycles = getbitu(Raw, k, 12); k += 12;
+				printf("The_number_of_GNSS_time_cycles=%d\n", The_number_of_GNSS_time_cycles);
+
+				Receiver_time_status = getbitu(Raw, k, 4); k += 4;
+				printf("Receiver_time_status=%d\n", Receiver_time_status);
+
+			}
+			/*else
+			{
+				Clarification_data = getbitu(Raw, k, 22); k += 22;
+				printf("Clarification_data=%d\n", Clarification_data);
+			}*/
+
+			if (2 < position_presentation)
+			{
+				if (k + 128 > mes_len * 8)
+				{
+					printf("Invalid message: Len_Reference Position \n");
+					return -1;
+				}
+				X_velocity = getbits(Raw, k, 25)*0.0001; k += 25;
+				printf("X_velocity=%lf\n", X_velocity);
+
+				Y_velocity = getbits(Raw, k, 25)*0.0001; k += 25;
+				printf("Y_velocity=%lf\n", Y_velocity);
+
+				Z_velocity = getbits(Raw, k, 25)*0.0001; k += 25;
+				printf("Z_velocity=%lf\n", Z_velocity);
+
+				Clock_estimate_status = getbitu(Raw, k, 1); k += 1;
+				printf("Clock_estimate_status=%d\n", Clock_estimate_status);
+
+				Receiver_clock_offset = getbits(Raw, k, 30)*0.001; k += 30;
+				printf("Receiver_clock_offset=%lf\n", Receiver_clock_offset);
+
+				Receiver_clock_drift = getbits(Raw, k, 22)*0.001; k += 22;
+				printf("Receiver_clock_drift=%lf\n", Receiver_clock_drift);
+
+			}
 		}
 	}
-	/*printf("n=%d, nmax=%d\n", raw->obs.n, raw->obs.nmax);*/
+
+
 
 	if (multiple)
 		return 0;
 	else
+	{
+		printf("raw->obs.n=%d\n", raw->obs.n);
 		return 1;
+	}
 }
 
+/* decode ATOM.NAV message -----------------------------------------*/
 static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
 	/*printf("====== YA V NAV ======\n");*/
@@ -871,22 +1181,30 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	NAV_message_type = getbitu(Raw, k, 9); k += 9;
 	printf("NAV message type=%d\n", NAV_message_type);
 
-	if ((NAV_message_type <= 0) || (NAV_message_type >= 3)) /*GPS and GLO eph only*/
-		return ret;
+	if ((NAV_message_type == 1) || (NAV_message_type == 2) || (NAV_message_type == 4)) /*GPS,GLO,GAL eph only*/
+	{
+		Standardized_message_number = getbitu(Raw, k, 12); k += 12;
+		printf("Standardized message number=%d\n", Standardized_message_number);
+	}
 
-	Standardized_message_number = getbitu(Raw, k, 12); k += 12;
-	printf("Standardized message number=%d\n", Standardized_message_number);
 
-
-	switch (Standardized_message_number) {
-	case 1019:
-		ret = decode_type1019(raw, Raw, k, mes_len); break;
-	case 1020:
-		ret = decode_type1020(raw, Raw, k, mes_len); break;
+	switch (NAV_message_type) {
+	case 1:
+		ret = decode_GPS_eph(raw, Raw, k, mes_len); break;
+	case 2:
+		ret = decode_GLO_eph(raw, Raw, k, mes_len); break;
+/*	case 3:
+		ret = decode_SBAS_eph(raw, Raw, k, mes_len); break;*/
+	case 4:
+		ret = decode_GAL_eph(raw, Raw, k, mes_len); break;
+/*	case 5:
+		ret = decode_QZSS_eph(raw, Raw, k, mes_len); break;
+	case 6:
+		ret = decode_BeiDou_eph(raw, Raw, k, mes_len); break;*/
 	}
 
 	if (ret >= 0) {
-		type = Standardized_message_number - 1000;
+		type = NAV_message_type;
 		if (1 <= type&&type <= 299) raw->msgtype[type]++; else raw->msgtype[0]++;
 		printf("!!!!`get nav message`!!!!\n");
 		printf("raw->msgtype[%d]=%d\n", type, raw->msgtype[type]);
@@ -926,10 +1244,8 @@ start:
 		goto start;
 	}
 
-
 	k = 24;
 	mes_num = getbitu(Raw, k, 12); k += 12;
-
 
 	if (mes_num != 4095)
 	{

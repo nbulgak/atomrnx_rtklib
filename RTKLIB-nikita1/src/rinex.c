@@ -1935,7 +1935,7 @@ static int obsindex(double ver, int sys, const unsigned char *code,
     for (i=0;i<NFREQ+NEXOBS;i++) {
         
         /* signal mask */
-        if (mask[code[i]-1]=='0') continue;
+		if (mask[code[i] - 1] == '0')  continue; 
         
         if (ver<=2.99) { /* ver.2 */
             if (!strcmp(tobs,"C1")&&(sys==SYS_GPS||sys==SYS_GLO||sys==SYS_QZS||
@@ -1982,6 +1982,8 @@ static int obsindex(double ver, int sys, const unsigned char *code,
         }
         else { /* ver.3 */
             id=code2obs(code[i],NULL);
+			if (SYS_GLO == sys)
+			printf("id=%s, tobs+1=%s\n", id, tobs + 1);
             if (!strcmp(id,tobs+1)) return i;
         }
     }
@@ -2007,12 +2009,12 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
     trace(3,"outrnxobsb: n=%d\n",n);
     
     time2epoch(obs[0].time,ep);
-    
+	printf("MAXOBS=%d, n=%d\n", MAXOBS, n);
     for (i=ns=0;i<n&&ns<MAXOBS;i++) {
         sys=satsys(obs[i].sat,NULL);
 
-        if (!(sys&opt->navsys)||opt->exsats[obs[i].sat-1]) continue;
-        if (!sat2code(obs[i].sat,sats[ns])) continue;
+		if (!(sys&opt->navsys) || opt->exsats[obs[i].sat - 1])  continue; 
+		if (!sat2code(obs[i].sat, sats[ns]))  continue; 
         switch (sys) {
             case SYS_GPS: s[ns]=0; break;
             case SYS_GLO: s[ns]=1; break;
@@ -2049,24 +2051,30 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
             m=s[i];
             mask=opt->mask[s[i]];
 		}
+		/*if (SYS_GLO == sys)*/
+			printf("sat=%d, opt->nobs[%d]=%d\n", obs[ind[i]].sat, m, opt->nobs[m]);
         for (j=0;j<opt->nobs[m];j++) {
-            
+
             if (opt->rnxver<=2.99) { /* ver.2 */
                 if (j%5==0) fprintf(fp,"\n");
             }
             /* search obs data index */
             if ((k=obsindex(opt->rnxver,sys,obs[ind[i]].code,opt->tobs[m][j],
                             mask))<0) {
+				if (SYS_GLO == sys)
+				printf("ya skipnul signal %d, k=%d, sys=%d\n", obs[ind[i]].code, k, sys);
                 outrnxobsf(fp,0.0,-1);
                 continue;
             }
+			if (SYS_GLO == sys)
+			printf("sys=%d, satno=%d, signal=%d, k=%d\n", sys, obs[ind[i]].sat, obs[ind[i]].code, k);
             /* output field */
             switch (opt->tobs[m][j][0]) {
                 case 'C':
-                case 'P': outrnxobsf(fp,obs[ind[i]].P[k],-1); break;
-                case 'L': outrnxobsf(fp,obs[ind[i]].L[k],obs[ind[i]].LLI[k]); break;
-                case 'D': outrnxobsf(fp,obs[ind[i]].D[k],-1); break;
-                case 'S': outrnxobsf(fp,obs[ind[i]].SNR[k]*0.25,-1); break;
+				case 'P': printf("P\n"); outrnxobsf(fp, obs[ind[i]].P[k], -1); break;
+				case 'L': printf("L\n"); outrnxobsf(fp, obs[ind[i]].L[k], obs[ind[i]].LLI[k]); break;
+				case 'D': printf("D\n"); outrnxobsf(fp, obs[ind[i]].D[k], -1); break;
+				case 'S': printf("S\n"); outrnxobsf(fp, obs[ind[i]].SNR[k] * 0.25, -1); break;
             }
         }
         if (opt->rnxver>2.99&&fprintf(fp,"\n")==EOF) return 0;

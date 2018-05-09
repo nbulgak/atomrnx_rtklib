@@ -516,15 +516,15 @@ typedef struct {        /* antenna parameters type */
 } pcvs_t;
 
 typedef struct {        /* almanac type */
-    int sat;            /* satellite number */
-    int svh;            /* sv health (0:ok) */
-    int svconf;         /* as and sv config */
-    int week;           /* GPS/QZS: gps week, GAL: galileo week */
-    gtime_t toa;        /* Toa */
-                        /* SV orbit parameters */
-    double A,e,i0,OMG0,omg,M0,OMGd;
-    double toas;        /* Toa (s) in week */
-    double f0,f1;       /* SV clock parameters (af0,af1) */
+	int sat;            /* satellite number */
+	int svh;            /* sv health (0:ok) */
+	int svconf;         /* as and sv config */
+	int week;           /* GPS/QZS: gps week, GAL: galileo week */
+	gtime_t toa;        /* Toa */
+	/* SV orbit parameters */
+	double A, e, i0, OMG0, omg, M0, OMGd;
+	double toas;        /* Toa (s) in week */
+	double f0, f1;       /* SV clock parameters (af0,af1) */
 } alm_t;
 
 typedef struct {        /* GPS/QZS/GAL broadcast ephemeris type */

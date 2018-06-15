@@ -469,7 +469,6 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	int i, j, l, m, week, sys, g=7, gnss[8];
 	double FinePseudoPhase, X_coordinate, Y_coordinate, Z_coordinate, Antenna_height,
 		X_velocity, Y_velocity, Z_velocity, Receiver_clock_offset, Receiver_clock_drift;
-	int Doppler[MAX_SATS], FineDoppler[MAX_SATS][MAX_SIGS];
 	unsigned int GNSSmask, version, ref_st_ID, multiple, IODS, smoothing, position_presentation, primary_GNSS_system,
 		primary_time_tag, time_tag_extension_type, fractional_second, hour, day, divergence_free_smoothing_indicator,
 		cumulative_session_transmitting_time_indicator, Data_ID_change_counter, Data_ID_follow, Nms_follow, Supplementary_follow,
@@ -479,10 +478,10 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		Elevation[MAX_SATS], Full_Range_Available[MAX_SATS], Satellite_Usage_Status[MAX_SATS], Reference_P[MAX_SATS], 
 		Motion_flag, Position_quality_flag, Position_tagging, Clarifier_switch, Clarification_data, Clock_estimate_status, 
 		ITRF_epoch_year, GPS_UTC_time_offset, The_number_of_GNSS_time_cycles, Receiver_time_status;
-
-	unsigned int FinePseudoRange1[MAX_SATS], CycSlipCounter1[MAX_SATS], IntCycPhase1[MAX_SATS], ChannelNumber1[MAX_SATS],
+	double FinePseudoRange1[MAX_SATS];
+	unsigned int CycSlipCounter1[MAX_SATS], IntCycPhase1[MAX_SATS], ChannelNumber1[MAX_SATS],
 		FracCycPhase1[MAX_SATS], SNR1[MAX_SATS], ExtSuppData1[MAX_SATS][2];
-	int FineDoppler1[MAX_SATS];
+	double FineDoppler1[MAX_SATS], Doppler[MAX_SATS];
 
 	if (k + 58 > mes_len * 8)
 	{
@@ -700,7 +699,7 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		for (i = 0; i < ncell; ++i)/*!!!!!!!!!!!!!!!!!!!!*/
 		{
 			int len = (Resolution == 0 ? 15 : 20);
-			FinePseudoRange1[i] = getbitu(Raw, k, len); k += len;
+			FinePseudoRange1[i] = getbitu(Raw, k, len)*0.02; k += len;
 		}
 
 
@@ -730,7 +729,7 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		{
 			int len = (Resolution == 0 ? 56 : 64);
 			ChannelNumber1[i] = getbitu(Raw, k, 8); k += 8;
-			FineDoppler1[i] = getbits(Raw, k, 15); k += 15;
+			FineDoppler1[i] = getbits(Raw, k, 15) * 0.0001; k += 15;
 			ExtSuppData1[i][0] = getbitu(Raw, k, 9); k += 9;
 			ExtSuppData1[i][1] = getbitu(Raw, k, (len - 32)); k += (len - 32);
 		}
@@ -778,7 +777,7 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 		sigindex(sys, code, freq, sig_cnt, 0, ind);
 
-		for (i = n = 0; i < sat_cnt; i++)
+		for (i = n = 0; i < sat_cnt; ++i)
 			{
 			    unsigned int si = sat[i];
 
@@ -802,18 +801,18 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 					{
 						wl = satwavelen(s, freq[j] - 1, &raw->nav);
 
-						raw->obs.data[index].LLI[ind[j]] = CycSlipCounter1[j];
-						raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[i])*RANGE_MS / 1024., 655.36, FinePseudoRange1[j]* 0.02);
+						raw->obs.data[index].LLI[ind[j]] = CycSlipCounter1[n];
+						raw->obs.data[index].P[ind[j]] = RestorePValue(((double)Reference_P[si])*RANGE_MS / 1024., 655.36, FinePseudoRange1[n]);
 						if (wl > 0.0)
 						{
-							FinePseudoPhase = (double)(FracCycPhase1[j] / (256.) + IntCycPhase1[j]);
-							raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[i] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
+							FinePseudoPhase = (double)(FracCycPhase1[n] / (256.) + IntCycPhase1[n]);
+							raw->obs.data[index].L[ind[j]] = RestorePValue((double)Reference_P[si] * RANGE_MS / (wl*1024.), 4096, FinePseudoPhase);
 						}
 						if (wl > 0.0)
 						{
-							raw->obs.data[index].D[ind[j]] = -(Doppler[i] + FineDoppler1[j] * 0.0001) / wl;
+							raw->obs.data[index].D[ind[j]] = -(Doppler[si] + FineDoppler1[n]) / wl;
 						}
-						raw->obs.data[index].SNR[ind[j]] = SNR1[j] / 0.25;
+						raw->obs.data[index].SNR[ind[j]] = SNR1[n] / 0.25;
 						raw->obs.data[index].code[ind[j]] = code[j];
 					}
 					n++;

@@ -18,11 +18,11 @@ static int adjbdtweek(int week)
 
 double RestorePValue(double Reference, double Ambiguity, double Modulo)
 {
-
+	double Full, Delta, Closest;
 	Modulo = Modulo - (int)(Modulo / Ambiguity)*Ambiguity;
-	double Closest = (int)(Reference / Ambiguity)*Ambiguity; /*find nearest on ambiguity scale*/
-	double Full = Closest + Modulo; /*full value which can have error +-fAmbiguity*/
-	double Delta = (Full - Reference); /*Find how far restored value from reference*/
+    Closest = (int)(Reference / Ambiguity)*Ambiguity; /*find nearest on ambiguity scale*/
+	Full = Closest + Modulo; /*full value which can have error +-fAmbiguity*/
+	Delta = (Full - Reference); /*Find how far restored value from reference*/
 	if (Delta > Ambiguity / 2) Full -= Ambiguity; /*make minus correction*/
 	else if (Delta < -Ambiguity / 2) Full += Ambiguity; /*make plus correction*/
 	return Full;
@@ -481,7 +481,14 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	double FinePseudoRange1[MAX_SATS];
 	unsigned int CycSlipCounter1[MAX_SATS], IntCycPhase1[MAX_SATS], ChannelNumber1[MAX_SATS],
 		FracCycPhase1[MAX_SATS], SNR1[MAX_SATS], ExtSuppData1[MAX_SATS][2];
+	unsigned int CellMask[64];
 	double FineDoppler1[MAX_SATS], Doppler[MAX_SATS];
+	int n, prn, s, freq[32], ind[32];
+	unsigned char code[32];
+	const char* sig_obs[32];
+	int index;
+	double tt, wl;
+
 
 	if (k + 58 > mes_len * 8)
 	{
@@ -622,7 +629,7 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		}
 
 		ncell = 0;
-		unsigned int CellMask[64];
+
 		for (i = 0; i < sig_cnt*sat_cnt; ++i)
 		{
 			CellMask[i] = getbitu(Raw, k, 1); ++k;
@@ -735,8 +742,6 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		}
 
 		/* rtklib_time */
-		int n, prn, s, freq[32], ind[32];
-		unsigned char code[32];
 
 		time2str(raw->time, www, 0);
 		time2gpst(raw->time, &week); /*calculating week*/
@@ -750,9 +755,7 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		}
 		time2str(raw->time, www, 0);
 
-		const char* sig_obs[32];
-		int index;
-		double tt, wl;
+
 
 		for (m = 0; m < sig_cnt; m++)
 		{
@@ -782,6 +785,8 @@ static int decode_atom_rnx(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 			    unsigned int si = sat[i];
 
 				prn = si + 1; 
+				if (32 == prn)
+					prn = 32;
 				if (sys == SYS_QZS) prn += MINPRNQZS - 1;
 				else if (sys == SYS_SBS) prn += MINPRNSBS - 1;
 
@@ -946,7 +951,7 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	return ret;
 }
 
-int input_atomf(raw_t *raw, FILE *f)
+int input_atomf(raw_t *raw, FILE *f)    /* Reading from file */
 {
 	unsigned char Raw[2048];
 	int k, type, ret;
@@ -1011,3 +1016,59 @@ int input_atomf(raw_t *raw, FILE *f)
 	return type;
 }
 
+int input_atom(raw_t *raw, unsigned char data)
+{
+	int k = 0, type, ret;
+	unsigned int mes_sub_num;
+
+    /* synchronize frame */
+    if (raw->nbyte==0) {
+		if (data!=0xD3) return 0;
+        raw->buff[raw->nbyte++]=data;
+        return 0;
+	}
+	raw->buff[raw->nbyte++]=data;
+
+	if (raw->nbyte==3) {
+		raw->len=getbitu(raw->buff,14,10)+3; /* length without parity */
+	}
+	if( (raw->nbyte > 5) && (getbitu(raw->buff, 24, 12)!=4095) )
+	{
+        raw->nbyte = 0;
+        return 0;
+    }
+	if (raw->nbyte<3||raw->nbyte<raw->len+3) return 0;
+	raw->nbyte=0;
+
+	/* check parity */
+    if (crc24q(raw->buff,raw->len)!=getbitu(raw->buff,raw->len*8,24)) {
+		return 0;
+	}
+
+	mes_sub_num = getbitu(raw->buff, 36, 4);
+	k = 40;
+
+	switch (mes_sub_num) {
+	case 5:
+		ret = decode_atom_nav(raw, raw->buff, k, raw->len);
+		if (-1 >= ret)
+		{
+  		    return -1;
+			/*return input_atomf(raw, f);*/
+		}
+		type = ret;
+		break;
+	case 7:
+		ret = decode_atom_rnx(raw, raw->buff, k, raw->len);
+		if (-1 >= ret)
+		{
+        return -1;
+			/*return input_atomf(raw, f);*/
+		}
+		type = ret;
+		break;
+	default: return -1;
+	/*return input_atomf(raw, f);*/
+	}
+	return type;
+}

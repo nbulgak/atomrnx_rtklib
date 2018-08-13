@@ -262,8 +262,10 @@ static int decoderaw(rtksvr_t *svr, int index)
 {
     obs_t *obs;
     nav_t *nav;
-    sbsmsg_t *sbsmsg=NULL;
-    int i,ret,sat,fobs=0;
+	sbsmsg_t *sbsmsg=NULL;
+  /*	unsigned char buf[2048];
+    int count=0;*/
+	int i,ret,sat,fobs=0;
     
     tracet(4,"decoderaw: index=%d\n",index);
     
@@ -273,23 +275,23 @@ static int decoderaw(rtksvr_t *svr, int index)
         
         /* input rtcm/receiver raw data from stream */
         if (svr->format[index]==STRFMT_RTCM2) {
-            ret=input_rtcm2(svr->rtcm+index,svr->buff[index][i]);
+			ret=input_rtcm2(svr->rtcm+index,svr->buff[index][i]);
             obs=&svr->rtcm[index].obs;
             nav=&svr->rtcm[index].nav;
             sat=svr->rtcm[index].ephsat;
         }
-        else if (svr->format[index]==STRFMT_RTCM3) {
-            ret=input_rtcm3(svr->rtcm+index,svr->buff[index][i]);
-            obs=&svr->rtcm[index].obs;
-            nav=&svr->rtcm[index].nav;
-            sat=svr->rtcm[index].ephsat;
-        }
-        else {
-            ret=input_raw(svr->raw+index,svr->format[index],svr->buff[index][i]);
-            obs=&svr->raw[index].obs;
-            nav=&svr->raw[index].nav;
-            sat=svr->raw[index].ephsat;
-            sbsmsg=&svr->raw[index].sbsmsg;
+		else if (svr->format[index]==STRFMT_RTCM3) {
+			ret=input_rtcm3(svr->rtcm+index,svr->buff[index][i]);
+			obs=&svr->rtcm[index].obs;
+			nav=&svr->rtcm[index].nav;
+			sat=svr->rtcm[index].ephsat;
+		}
+		else {
+			ret=input_raw(svr->raw+index,svr->format[index],svr->buff[index][i]);
+			obs=&svr->raw[index].obs;
+			nav=&svr->raw[index].nav;
+			sat=svr->raw[index].ephsat;
+			sbsmsg=&svr->raw[index].sbsmsg;
         }
 #if 0 /* record for receiving tick */
         if (ret==1) {
@@ -297,7 +299,7 @@ static int decoderaw(rtksvr_t *svr, int index)
                   time_str(obs->data[0].time,0),obs->n);
         }
 #endif
-        /* update rtk server */
+		/* update rtk server */
         if (ret>0) updatesvr(svr,ret,obs,nav,sat,sbsmsg,index,fobs);
         
         /* observation data received */
@@ -305,9 +307,9 @@ static int decoderaw(rtksvr_t *svr, int index)
             if (fobs<MAXOBSBUF) fobs++; else svr->prcout++;
         }
     }
-    svr->nb[index]=0;
+	svr->nb[index]=0;
     
-    rtksvrunlock(svr);
+	rtksvrunlock(svr);
     
     return fobs;
 }

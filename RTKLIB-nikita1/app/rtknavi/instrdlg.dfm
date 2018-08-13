@@ -203,7 +203,7 @@ object InputStrDialog: TInputStrDialog
     Width = 97
     Height = 21
     Style = csDropDownList
-    DropDownCount = 16
+    DropDownCount = 17
     TabOrder = 6
   end
   object Format2: TComboBox
@@ -212,7 +212,7 @@ object InputStrDialog: TInputStrDialog
     Width = 97
     Height = 21
     Style = csDropDownList
-    DropDownCount = 16
+    DropDownCount = 17
     TabOrder = 12
   end
   object BtnCmd1: TButton
@@ -432,7 +432,7 @@ object InputStrDialog: TInputStrDialog
     Width = 97
     Height = 21
     Style = csDropDownList
-    DropDownCount = 16
+    DropDownCount = 17
     TabOrder = 18
   end
   object BtnCmd3: TButton

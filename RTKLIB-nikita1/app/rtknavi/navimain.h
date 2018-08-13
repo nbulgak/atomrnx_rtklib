@@ -15,6 +15,7 @@
 #include <Menus.hpp>
 
 #include "rtklib.h"
+#include <System.ImageList.hpp>
 
 #define MAXSCALE	18
 #define MAXMAPPNT	10

@@ -2009,7 +2009,7 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
     trace(3,"outrnxobsb: n=%d\n",n);
     
     time2epoch(obs[0].time,ep);
-	printf("MAXOBS=%d, n=%d\n", MAXOBS, n);
+
     for (i=ns=0;i<n&&ns<MAXOBS;i++) {
         sys=satsys(obs[i].sat,NULL);
 
@@ -2062,7 +2062,6 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
             if ((k=obsindex(opt->rnxver,sys,obs[ind[i]].code,opt->tobs[m][j],
                             mask))<0) {
 				if (SYS_GLO == sys)
-				printf("ya skipnul signal %d, k=%d, sys=%d\n", obs[ind[i]].code, k, sys);
                 outrnxobsf(fp,0.0,-1);
                 continue;
             }
@@ -2071,10 +2070,10 @@ extern int outrnxobsb(FILE *fp, const rnxopt_t *opt, const obsd_t *obs, int n,
             /* output field */
             switch (opt->tobs[m][j][0]) {
                 case 'C':
-				case 'P': printf("P\n"); outrnxobsf(fp, obs[ind[i]].P[k], -1); break;
-				case 'L': printf("L\n"); outrnxobsf(fp, obs[ind[i]].L[k], obs[ind[i]].LLI[k]); break;
-				case 'D': printf("D\n"); outrnxobsf(fp, obs[ind[i]].D[k], -1); break;
-				case 'S': printf("S\n"); outrnxobsf(fp, obs[ind[i]].SNR[k] * 0.25, -1); break;
+				case 'P': outrnxobsf(fp, obs[ind[i]].P[k], -1); break;
+				case 'L': outrnxobsf(fp, obs[ind[i]].L[k], obs[ind[i]].LLI[k]); break;
+				case 'D': outrnxobsf(fp, obs[ind[i]].D[k], -1); break;
+				case 'S': outrnxobsf(fp, obs[ind[i]].SNR[k] * 0.25, -1); break;
             }
         }
         if (opt->rnxver>2.99&&fprintf(fp,"\n")==EOF) return 0;

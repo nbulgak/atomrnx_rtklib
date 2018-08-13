@@ -399,9 +399,9 @@ extern "C" {
 #define STRFMT_SBAS  19                 /* stream format: SBAS messages */
 #define STRFMT_NMEA  20                 /* stream format: NMEA 0183 */
 #ifndef EXTLEX
-#define MAXRCVFMT    13                 /* max number of receiver format */
+#define MAXRCVFMT    14                 /* max number of receiver format */
 #else
-#define MAXRCVFMT    14
+#define MAXRCVFMT    15
 #endif
 
 #define STR_MODE_R  0x1                 /* stream mode: read */
@@ -1221,10 +1221,10 @@ typedef struct {        /* RTK server type */
     int nsbs;           /* number of sbas message */
     int nsol;           /* number of solution buffer */
     rtk_t rtk;          /* RTK control/result struct */
-    int nb [3];         /* bytes in input buffers {rov,base} */
+	int nb [3];         /* bytes in input buffers {rov,base} */
     int nsb[2];         /* bytes in soulution buffers */
     int npb[3];         /* bytes in input peek buffers */
-    unsigned char *buff[3]; /* input buffers {rov,base,corr} */
+	unsigned char *buff[3]; /* input buffers {rov,base,corr} */
     unsigned char *sbuf[2]; /* output buffers {sol1,sol2} */
     unsigned char *pbuf[3]; /* peek buffers {rov,base,corr} */
     sol_t solbuf[MAXSOLBUF]; /* solution buffer */
@@ -1236,7 +1236,7 @@ typedef struct {        /* RTK server type */
     obs_t obs[3][MAXOBSBUF]; /* observation data {rov,base,corr} */
     nav_t nav;          /* navigation data */
     sbsmsg_t sbsmsg[MAXSBSMSG]; /* SBAS message buffer */
-    stream_t stream[8]; /* streams {rov,base,corr,sol1,sol2,logr,logb,logc} */
+	stream_t stream[8]; /* streams {rov,base,corr,sol1,sol2,logr,logb,logc} */
     stream_t *moni;     /* monitor stream */
     unsigned int tick;  /* start tick */
     thread_t thread;    /* server thread */

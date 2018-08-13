@@ -855,7 +855,8 @@ extern int input_raw(raw_t *raw, int format, unsigned char data)
         case STRFMT_NVS  : return input_nvs  (raw,data);
         case STRFMT_BINEX: return input_bnx  (raw,data);
         case STRFMT_RT17 : return input_rt17 (raw,data);
-        case STRFMT_LEXR : return input_lexr (raw,data);
+		case STRFMT_LEXR : return input_lexr (raw,data);
+        case STRFMT_ATOM : return input_atom (raw,data);
     }
     return 0;
 }

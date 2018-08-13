@@ -587,8 +587,7 @@ static void set_obstype(int format, rnxopt_t *opt)
     };
 
     /* supported codes by atom */
-	
-    const unsigned char codes_atom[6][32]={
+	const unsigned char codes_atom[6][32]={
         {CODE_L1C,CODE_L1P,CODE_L1W,CODE_L2C,CODE_L2P,CODE_L2W,CODE_L2S,CODE_L2L,
 		 CODE_L2X,CODE_L5I,CODE_L5Q,CODE_L5X,CODE_L1S,CODE_L1L,CODE_L1X},/*GPS*/
 		{ CODE_L1C, CODE_L1P, CODE_L2C, CODE_L2P, CODE_L3I, CODE_L3Q, CODE_L3X },/*GLO*/

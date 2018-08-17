@@ -6,6 +6,7 @@
 #define P2_34       5.820766091346740E-11 /* 2^-34 */
 #define P2_46       1.421085471520200E-14 /* 2^-46 */
 #define P2_59       1.734723475976810E-18 /* 2^-59 */
+#define P2_66       1.355252715606880E-20 /* 2^-66 */
 
 /* adjust weekly rollover of bdt time ----------------------------------------*/
 static int adjbdtweek(int week)
@@ -272,6 +273,42 @@ static int decode_GLO_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 /* decode SBAS ephemerides -----------------------------------------*/
 static int decode_SBAS_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 {
+	seph_t seph = { 0 };
+	double toc, sqrtA;
+	char *msg;
+	int i = k, prn, sat, week, e5a_hs, e5a_dvs, rsv, sys = SYS_SBS, iode, tod, tow;
+
+	if (i + 224 <= mes_len * 8) {
+		prn = getbitu(Raw, i, 8);                     i += 8;
+		iode = getbitu(Raw, i, 8);               i += 8;
+		tow = getbitu(Raw, i, 13)*16.0;                     i += 13;
+		seph.sva = getbitu(Raw, i, 4);                 i += 4;
+		seph.pos[0] = getbits(Raw, i, 30)*0.08;                 i += 30;
+		seph.pos[1] = getbits(Raw, i, 30)*0.08;                 i += 30;
+		seph.pos[2] = getbits(Raw, i, 25)*0.4;                 i += 25;
+		seph.vel[0] = getbits(Raw, i, 17)*0.000625;                 i += 17;
+		seph.vel[1] = getbits(Raw, i, 17)*0.000625;                 i += 17;
+		seph.vel[2] = getbits(Raw, i, 18)*0.004;                 i += 18;
+		seph.acc[0] = getbits(Raw, i, 10)*0.0000125;                 i += 10;
+		seph.acc[1] = getbits(Raw, i, 10)*0.0000125;                 i += 10;
+		seph.acc[2] = getbits(Raw, i, 10)*0.0000125;                 i += 10;
+		seph.af0 = getbits(Raw, i, 12)*P2_31;                 i += 12;
+		seph.af1 = getbits(Raw, i, 8)*P2_40;                 i += 8 + 4;
+	}
+	else {
+
+		return -1;
+	}
+
+	if (!(sat = satno(sys, prn))) {
+		return -1;
+	}
+	seph.sat = sat;
+	seph.t0 = gpst2time(week, tow);
+
+
+	raw->nav.seph[sat - 1] = seph;
+	raw->ephsat = sat;
 	return 2;
 }
 
@@ -344,70 +381,8 @@ static int decode_QZSS_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	char *msg;
 	int i = k, prn, sat, week, sys = SYS_QZS;
 
-	if (i + 473 <= mes_len * 8) {
-		prn = getbitu(Raw, i, 4) + 192;          i += 4;
-		toc = getbitu(Raw, i, 16)*16.0;         i += 16;
-		eph.f2 = getbits(Raw, i, 8)*P2_55;        i += 8;
-		eph.f1 = getbits(Raw, i, 16)*P2_43;        i += 16;
-		eph.f0 = getbits(Raw, i, 22)*P2_31;        i += 22;
-		eph.iode = getbitu(Raw, i, 8);              i += 8;
-		eph.crs = getbits(Raw, i, 16)*P2_5;         i += 16;
-		eph.deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
-		eph.M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		eph.cuc = getbits(Raw, i, 16)*P2_29;        i += 16;
-		eph.e = getbitu(Raw, i, 32)*P2_33;        i += 32;
-		eph.cus = getbits(Raw, i, 16)*P2_29;        i += 16;
-		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
-		eph.toes = getbitu(Raw, i, 16)*16.0;         i += 16;
-		eph.cic = getbits(Raw, i, 16)*P2_29;        i += 16;
-		eph.OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		eph.cis = getbits(Raw, i, 16)*P2_29;        i += 16;
-		eph.i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		eph.crc = getbits(Raw, i, 16)*P2_5;         i += 16;
-		eph.omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
-		eph.OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
-		eph.idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
-		eph.code = getbitu(Raw, i, 2);              i += 2;
-		week = getbitu(Raw, i, 10);              i += 10;
-		eph.sva = getbitu(Raw, i, 4);              i += 4;
-		eph.svh = getbitu(Raw, i, 6);              i += 6;
-		eph.tgd[0] = getbits(Raw, i, 8)*P2_31;        i += 8;
-		eph.iodc = getbitu(Raw, i, 10);              i += 10;
-		eph.fit = getbitu(Raw, i, 1) ? 0.0 : 2.0; /* 0:2hr,1:>2hr */
-	}
-	else {
-
-		return -1;
-	}
-
-	if (!(sat = satno(sys, prn))) {
-		return -1;
-	}
-	eph.sat = sat;
-	eph.week = adjgpsweek(week);
-	eph.toe = gpst2time(eph.week, eph.toes);
-	eph.toc = gpst2time(eph.week, toc);
-	eph.ttr = raw->time;
-	eph.A = sqrtA*sqrtA;
-
-		if (eph.iode == raw->nav.eph[sat - 1].iode&&
-			eph.iodc == raw->nav.eph[sat - 1].iodc) return 0; /* unchanged */
-
-	raw->nav.eph[sat - 1] = eph;
-	raw->ephsat = sat;
-	return 2;
-}
-
-/* decode BeiDou ephemerides -----------------------------------------*/
-static int decode_BeiDou_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
-{
-	eph_t eph = { 0 };
-	double toc, sqrtA;
-	char *msg;
-	int i = k, prn, sat, week, sys = SYS_CMP;
-
 	if (i + 476 <= mes_len * 8) {
-		prn = getbitu(Raw, i, 6);              i += 6;
+		prn = getbitu(Raw, i, 6) + 192;          i += 6;
 		week = getbitu(Raw, i, 10);              i += 10;
 		eph.sva = getbitu(Raw, i, 4);              i += 4;
 		eph.code = getbitu(Raw, i, 2);              i += 2;
@@ -436,7 +411,67 @@ static int decode_BeiDou_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		eph.tgd[0] = getbits(Raw, i, 8)*P2_31;        i += 8;
 		eph.svh = getbitu(Raw, i, 6);              i += 6;
 		eph.flag = getbitu(Raw, i, 1);              i += 1;
-		eph.fit = getbitu(Raw, i, 1) ? 0.0 : 4.0; /* 0:4hr,1:>4hr */
+		eph.fit = getbitu(Raw, i, 1) ? 0.0 : 2.0; 
+	}
+	else {
+
+		return -1;
+	}
+
+	if (!(sat = satno(sys, prn))) {
+		return -1;
+	}
+	eph.sat = sat;
+	eph.week = adjgpsweek(week);
+	eph.toe = gpst2time(eph.week, eph.toes);
+	eph.toc = gpst2time(eph.week, toc);
+	eph.ttr = raw->time;
+	eph.A = sqrtA*sqrtA;
+
+		if (eph.iode == raw->nav.eph[sat - 1].iode&&
+			eph.iodc == raw->nav.eph[sat - 1].iodc) return 0; 
+
+	raw->nav.eph[sat - 1] = eph;
+	raw->ephsat = sat;
+	return 2;
+}
+
+/* decode BeiDou ephemerides -----------------------------------------*/
+static int decode_BeiDou_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
+{
+	eph_t eph = { 0 };
+	double toc, sqrtA;
+	char *msg;
+	int i = k, prn, sat, week, sys = SYS_CMP, aodc, aode;
+
+	if (i + 506 <= mes_len * 8) {
+		prn = getbitu(Raw, i, 6);              i += 6 + 1;
+		eph.iodc = getbitu(Raw, i, 5);              i += 5;
+		eph.sva = getbitu(Raw, i, 4);              i += 4;
+		week = getbitu(Raw, i, 13);              i += 13;
+		toc = getbitu(Raw, i, 17)*8.0;         i += 17;
+		eph.tgd[0] = getbits(Raw, i, 10)*0.01;        i += 10;
+		eph.tgd[1] = getbits(Raw, i, 10)*0.01;        i += 10;
+		eph.f2 = getbits(Raw, i, 11)*P2_66;        i += 11;
+		eph.f0 = getbits(Raw, i, 24)*P2_33;        i += 24;
+		eph.f1 = getbits(Raw, i, 22)*P2_50;        i += 22;
+		eph.iode = getbitu(Raw, i, 5);              i += 5;
+		eph.deln = getbits(Raw, i, 16)*P2_43*SC2RAD; i += 16;
+		eph.cuc = getbits(Raw, i, 18)*P2_31;        i += 18;
+		eph.M0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.e = getbitu(Raw, i, 32)*P2_33;        i += 32;
+		eph.cus = getbits(Raw, i, 18)*P2_31;        i += 18;
+		eph.crc = getbits(Raw, i, 18)*P2_6;         i += 18;
+		eph.crs = getbits(Raw, i, 18)*P2_6;         i += 18;
+		sqrtA = getbitu(Raw, i, 32)*P2_19;        i += 32;
+		eph.toes = getbitu(Raw, i, 17)*8.0;         i += 17;
+		eph.i0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.cic = getbits(Raw, i, 18)*P2_31;        i += 18;
+		eph.OMGd = getbits(Raw, i, 24)*P2_43*SC2RAD; i += 24;
+		eph.cis = getbits(Raw, i, 18)*P2_31;        i += 18;
+		eph.idot = getbits(Raw, i, 14)*P2_43*SC2RAD; i += 14;
+		eph.OMG0 = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32;
+		eph.omg = getbits(Raw, i, 32)*P2_31*SC2RAD; i += 32 + 9;
 	}
 	else {
 
@@ -447,14 +482,20 @@ static int decode_BeiDou_eph(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 	if (!(sat = satno(sys, prn))) {
 		return -1;
 	}
-	eph.sat = sat;
+
 	eph.week = adjbdtweek(week);
-	eph.toe = bdt2gpst(bdt2time(eph.week, eph.toes)); /* bdt -> gpst */
-	eph.toc = bdt2gpst(bdt2time(eph.week, toc));      /* bdt -> gpst */
+	eph.toe = gpst2time(eph.week + 1356, eph.toes + 14.0); /* bdt -> gpst */
+	eph.toc = gpst2time(eph.week + 1356, eph.toes + 14.0); /* bdt -> gpst */
 	eph.ttr = raw->time;
+
+	eph.sat = sat;
+
+	/*eph.toe = bdt2gpst(bdt2time(eph.week, eph.toes)); 
+	eph.toc = bdt2gpst(bdt2time(eph.week, toc));      
+	eph.ttr = raw->time;*/
 	eph.A = sqrtA*sqrtA;
 
-		if (eph.iode == raw->nav.eph[sat - 1].iode) return 0; /* unchanged */
+		if (eph.iode == raw->nav.eph[sat - 1].iode) return 0; 
 	
 	raw->nav.eph[sat - 1] = eph;
 	raw->ephsat = sat;
@@ -923,10 +964,7 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 
 	NAV_message_type = getbitu(Raw, k, 9); k += 9;
 
-	if ((NAV_message_type == 1) || (NAV_message_type == 2) || (NAV_message_type == 4)) /*GPS,GLO,GAL eph only*/
-	{
-		Standardized_message_number = getbitu(Raw, k, 12); k += 12;
-	}
+	Standardized_message_number = getbitu(Raw, k, 12); k += 12;
 
 
 	switch (NAV_message_type) {
@@ -934,14 +972,14 @@ static int decode_atom_nav(raw_t *raw, unsigned char *Raw, int k, int mes_len)
 		ret = decode_GPS_eph(raw, Raw, k, mes_len); break;
 	case 2:
 		ret = decode_GLO_eph(raw, Raw, k, mes_len); break;
-/*	case 3:
-		ret = decode_SBAS_eph(raw, Raw, k, mes_len); break;*/
+	case 3:
+		ret = decode_SBAS_eph(raw, Raw, k, mes_len); break;
 	case 4:
 		ret = decode_GAL_eph(raw, Raw, k, mes_len); break;
-/*	case 5:
+	case 5:
 		ret = decode_QZSS_eph(raw, Raw, k, mes_len); break;
 	case 6:
-		ret = decode_BeiDou_eph(raw, Raw, k, mes_len); break;*/
+		ret = decode_BeiDou_eph(raw, Raw, k, mes_len); break;
 	}
 
 	if (ret >= 0) {
